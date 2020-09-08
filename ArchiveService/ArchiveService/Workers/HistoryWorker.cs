@@ -49,6 +49,8 @@ namespace ArchiveService.Workers
                     DateTime.TryParse($"{beginAt.ToString("yyyy/MM/dd")} {configuration.GetValue<string>("EndTime")}", out DateTime endTime))
                 {
 
+                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+
                     if (endTime < startTime)
                     {
                         endTime = endTime.AddDays(1);
@@ -93,7 +95,7 @@ namespace ArchiveService.Workers
         }
         private DateTime GetUTC8Time()
         {
-            return new DateTimeOffset(DateTime.Now).ToOffset(new TimeSpan(8, 0, 0)).LocalDateTime;
+            return new DateTimeOffset(DateTime.Now).ToOffset(new TimeSpan(8, 0, 0)).DateTime;
         }
         public override Task StopAsync(CancellationToken cancellationToken)
         {
