@@ -21,7 +21,7 @@ namespace ArchiveService.Service.DAL
         {
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
 
-            conn.Execute("David_Test_tpbetrecord_del", data, commandType: CommandType.StoredProcedure);
+            conn.Execute("Archive_TpBetRecord_Del", data, commandType: CommandType.StoredProcedure);
         }
     }
 }

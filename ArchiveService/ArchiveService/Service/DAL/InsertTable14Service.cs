@@ -25,17 +25,19 @@ namespace ArchiveService.Service.DAL
         public void InsterToTp14(TpbetrecordModel data)
         {
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
-            conn.Execute("David_Test_tpbetrecord14_Ins", data, commandType: CommandType.StoredProcedure);
+            conn.Execute("Archive_TpBetRecord14_Ins", data, commandType: CommandType.StoredProcedure);
         }
         public void Archive14(TpbetrecordModel data)
         {
+            bool noDelete = configuration.GetValue<bool>("NoDelete");
+
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             conn.Open();
             try
             {
-                conn.Execute("David_Test_tpbetrecord14_Ins", data, commandType: CommandType.StoredProcedure);
-                if (!configuration.GetValue<bool>("NoDelete"))
-                    conn.Execute("David_Test_tpbetrecord_del", data, commandType: CommandType.StoredProcedure);
+                conn.Execute("Archive_TpBetRecord14_Ins", data, commandType: CommandType.StoredProcedure);
+                if (!noDelete)
+                    conn.Execute("Archive_TpBetRecord_Del", data, commandType: CommandType.StoredProcedure);
             }
             catch (MySqlException ex)
             {
@@ -43,8 +45,8 @@ namespace ArchiveService.Service.DAL
                 // Console.WriteLine("InsterToTp14 Exception ex.Number ::" + ex.Number);
                 if (ex.Number == 1062) //匯入資料重複
                 {
-                    if (!configuration.GetValue<bool>("NoDelete"))
-                        conn.Execute("David_Test_tpbetrecord_del", data, commandType: CommandType.StoredProcedure);
+                    if (!noDelete)
+                        conn.Execute("Archive_TpBetRecord_Del", data, commandType: CommandType.StoredProcedure);
                 }
             }
         }

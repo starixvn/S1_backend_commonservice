@@ -22,7 +22,7 @@ namespace ArchiveService.Service.DAL
         public IEnumerable<TpbetrecordModel> GetTpData(int LinminNum)
         {
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
-            return conn.Query<TpbetrecordModel>("David_Test_tpbetrecord_SettledTimeOVER14_Get", new { LIMINNUM = LinminNum }, commandType: CommandType.StoredProcedure);
+            return conn.Query<TpbetrecordModel>("Archive_TpBetRecord_Get", new { LIMINNUM = LinminNum }, commandType: CommandType.StoredProcedure);
         }
 
         // string connetStr = "server=127.0.0.1;port=3306;user=root;password=1234; database=Siebog;";
