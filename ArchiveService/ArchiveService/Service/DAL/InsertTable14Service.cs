@@ -36,7 +36,7 @@ namespace ArchiveService.Service.DAL
             try
             {
                 conn.Execute("Archive_TpBetRecord14_Ins", data, commandType: CommandType.StoredProcedure);
-                if (!delete)
+                if (delete)
                     conn.Execute("Archive_TpBetRecord_Del", data, commandType: CommandType.StoredProcedure);
             }
             catch (MySqlException ex)
@@ -45,7 +45,7 @@ namespace ArchiveService.Service.DAL
                 // Console.WriteLine("InsterToTp14 Exception ex.Number ::" + ex.Number);
                 if (ex.Number == 1062) //匯入資料重複
                 {
-                    if (!delete)
+                    if (delete)
                         conn.Execute("Archive_TpBetRecord_Del", data, commandType: CommandType.StoredProcedure);
                 }
             }
