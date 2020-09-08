@@ -1,5 +1,6 @@
 ﻿using ArchiveService.Service.DAL;
 using ArchiveService.Service.Model;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +16,27 @@ namespace ArchiveService.Service.BLL
         {
             this.insertTable14Service = insertTable14Service;
         }
-        public void InsterToTp14AndDelOld(IEnumerable<TpbetrecordModel> data)
+        public bool InsterToTp14(TpbetrecordModel data)
         {
-            insertTable14Service.InsterToTp14AndDelOld(data);
+            try
+            {
+                insertTable14Service.InsterToTp14(data);
+                return true;
+            }
+            catch (MySqlException ex)
+            {
+              //  Console.WriteLine("InsterToTp14 Exception ex.Number ::" + ex.Number);
+                if (ex.Number == 1062) //匯入資料重複
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        public void Archive14(TpbetrecordModel data)
+        {
+                insertTable14Service.Archive14(data);
         }
 
     }

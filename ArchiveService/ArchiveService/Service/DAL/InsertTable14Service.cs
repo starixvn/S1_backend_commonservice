@@ -1,6 +1,8 @@
 ﻿using ArchiveService.Service.Model;
+using ArchiveService.Workers;
 using Dapper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -12,16 +14,39 @@ namespace ArchiveService.Service.DAL
 {
     public class InsertTable14Service
     {
+        private readonly ILogger<HistoryWorker> logger;
         private readonly IConfiguration configuration;
-        public InsertTable14Service(IConfiguration configuration)
+        public InsertTable14Service(IConfiguration configuration,
+            ILogger<HistoryWorker> logger)
         {
+            this.logger = logger;
             this.configuration = configuration;
         }
-        public void InsterToTp14AndDelOld(IEnumerable<TpbetrecordModel> data)
+        public void InsterToTp14(TpbetrecordModel data)
         {
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
-
             conn.Execute("David_Test_tpbetrecord14_Ins", data, commandType: CommandType.StoredProcedure);
+        }
+        public void Archive14(TpbetrecordModel data)
+        {
+            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            conn.Open();
+            try
+            {
+                conn.Execute("David_Test_tpbetrecord14_Ins", data, commandType: CommandType.StoredProcedure);
+                if (!configuration.GetValue<bool>("NoDelete"))
+                    conn.Execute("David_Test_tpbetrecord_del", data, commandType: CommandType.StoredProcedure);
+            }
+            catch (MySqlException ex)
+            {
+                logger.LogError(ex.Message);
+                // Console.WriteLine("InsterToTp14 Exception ex.Number ::" + ex.Number);
+                if (ex.Number == 1062) //匯入資料重複
+                {
+                    if (!configuration.GetValue<bool>("NoDelete"))
+                        conn.Execute("David_Test_tpbetrecord_del", data, commandType: CommandType.StoredProcedure);
+                }
+            }
         }
     }
 }

@@ -26,7 +26,7 @@ namespace ArchiveService.Service.Model
         public int SettlementType { set; get; }
         public int TicketStatus { set; get; }
         public string? OriginalState { set; get; }
-        public Int64 TicketKey { set; get; }
+        public long TicketKey { set; get; }
         public int BonusId { set; get; }
         public DateTime CreateTime { set; get; }
     }
