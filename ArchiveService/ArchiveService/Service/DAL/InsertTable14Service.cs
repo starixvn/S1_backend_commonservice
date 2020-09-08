@@ -29,14 +29,14 @@ namespace ArchiveService.Service.DAL
         }
         public void Archive14(TpbetrecordModel data)
         {
-            bool noDelete = configuration.GetValue<bool>("NoDelete");
+            bool delete = configuration.GetValue<bool>("Delete");
 
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             conn.Open();
             try
             {
                 conn.Execute("Archive_TpBetRecord14_Ins", data, commandType: CommandType.StoredProcedure);
-                if (!noDelete)
+                if (!delete)
                     conn.Execute("Archive_TpBetRecord_Del", data, commandType: CommandType.StoredProcedure);
             }
             catch (MySqlException ex)
@@ -45,7 +45,7 @@ namespace ArchiveService.Service.DAL
                 // Console.WriteLine("InsterToTp14 Exception ex.Number ::" + ex.Number);
                 if (ex.Number == 1062) //匯入資料重複
                 {
-                    if (!noDelete)
+                    if (!delete)
                         conn.Execute("Archive_TpBetRecord_Del", data, commandType: CommandType.StoredProcedure);
                 }
             }
