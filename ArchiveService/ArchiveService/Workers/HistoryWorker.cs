@@ -13,28 +13,28 @@ namespace ArchiveService.Workers
     public class HistoryWorker : BackgroundService
     {
         private readonly ILogger<HistoryWorker> logger;
-        private readonly QuaryTableBLL quaryTableBLL;
+        private readonly QueryTableBLL queryTableBLL;
         private readonly InsertTable14BLL insertTable14BLL;
-        private Timer timer;
+        private Timer timerTPArchive;
         private readonly IConfiguration configuration;
         private string processDate = "";
 
         public HistoryWorker(
             ILogger<HistoryWorker> logger,
-            QuaryTableBLL quaryTableBLL,
+            QueryTableBLL queryTableBLL,
             InsertTable14BLL insertTable14BLL,
             IConfiguration configuration
         )
         {
             this.logger = logger;
-            this.quaryTableBLL = quaryTableBLL;
+            this.queryTableBLL = queryTableBLL;
             this.insertTable14BLL = insertTable14BLL;
             this.configuration = configuration;
         }
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
 
-            timer = new Timer(DoTask, null, TimeSpan.Zero, TimeSpan.Zero);
+            timerTPArchive = new Timer(DoTask, null, TimeSpan.Zero, TimeSpan.Zero);
             return Task.CompletedTask;
         }
         private void DoTask(object state)
@@ -63,7 +63,7 @@ namespace ArchiveService.Workers
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
                             //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
-                            var data = quaryTableBLL.GetTpData(configuration.GetValue<int>("LiminNum"));
+                            var data = queryTableBLL.GetTpData(configuration.GetValue<int>("LiminNum"));
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
@@ -97,7 +97,7 @@ namespace ArchiveService.Workers
             {
                 //   Console.WriteLine("finally in");
                 TimeSpan dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("CheckTime"));
-                timer.Change(dueTimeSpan, TimeSpan.Zero);
+                timerTPArchive.Change(dueTimeSpan, TimeSpan.Zero);
                 //    Console.WriteLine("finish new timer");
             }
         }
@@ -109,7 +109,7 @@ namespace ArchiveService.Workers
         {
             //  Console.WriteLine("StopAsync(CancellationToken cancellationToken)");
             //WriteToFile("WriteToFileHostedService: Process Stopped");
-            timer?.Change(Timeout.Infinite, 0);
+            timerTPArchive?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
     }

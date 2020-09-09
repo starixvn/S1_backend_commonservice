@@ -19,12 +19,12 @@ namespace ArchiveService
         public void ConfigureServices(IServiceCollection services)
         {
             /* BLL */
-            services.AddSingleton<QuaryTableBLL>();
+            services.AddSingleton<QueryTableBLL>();
             services.AddSingleton<InsertTable14BLL>();
             services.AddSingleton<DelOldItemFromTPBLL>();
 
             /* DAL */
-            services.AddSingleton<QuaryTableService>();
+            services.AddSingleton<QueryTableService>();
             services.AddSingleton<InsertTable14Service>();
             services.AddSingleton<DelOldItemFromTPService>();
 

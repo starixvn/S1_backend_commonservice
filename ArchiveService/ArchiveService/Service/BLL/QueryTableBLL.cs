@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace ArchiveService.Service.BLL
 {
-    public class QuaryTableBLL
+    public class QueryTableBLL
     {
-        private readonly QuaryTableService quaryTableService;
+        private readonly QueryTableService queryTableService;
 
-        public QuaryTableBLL(QuaryTableService quaryTableService)
+        public QueryTableBLL(QueryTableService queryTableService)
         {
-            this.quaryTableService = quaryTableService;
+            this.queryTableService = queryTableService;
         }
         public IEnumerable<TpbetrecordModel> GetTpData(int LinminNum)
         {
-            return quaryTableService.GetTpData(LinminNum);
+            return queryTableService.GetTpData(LinminNum);
         }
     }
 }

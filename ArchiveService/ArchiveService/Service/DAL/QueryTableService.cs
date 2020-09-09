@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace ArchiveService.Service.DAL
 {
-    public class QuaryTableService
+    public class QueryTableService
     {
         private readonly IConfiguration configuration;
 
-        public QuaryTableService(IConfiguration configuration)
+        public QueryTableService(IConfiguration configuration)
         {
             this.configuration = configuration;
         }
