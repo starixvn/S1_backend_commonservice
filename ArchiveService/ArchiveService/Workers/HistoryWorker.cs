@@ -68,7 +68,7 @@ namespace ArchiveService.Workers
                             {
                                 if (item.DoDelete)
                                 {
-                                    insertTable14BLL.Archive14(item);
+                                    insertTable14BLL.ArchiveTP14(item);
                                 }
                                 else
                                 {

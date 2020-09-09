@@ -21,12 +21,12 @@ namespace ArchiveService
             /* BLL */
             services.AddSingleton<QueryTableBLL>();
             services.AddSingleton<InsertTable14BLL>();
-            services.AddSingleton<DelOldItemFromTPBLL>();
+            services.AddSingleton<DelOldItemBLL>();
 
             /* DAL */
             services.AddSingleton<QueryTableService>();
             services.AddSingleton<InsertTable14Service>();
-            services.AddSingleton<DelOldItemFromTPService>();
+            services.AddSingleton<DelOldItemService>();
 
 
         }

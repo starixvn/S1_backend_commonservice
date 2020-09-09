@@ -27,7 +27,7 @@ namespace ArchiveService.Service.DAL
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             conn.Execute("Archive_TpBetRecord14_Ins", data, commandType: CommandType.StoredProcedure);
         }
-        public void Archive14(TpbetrecordModel data)
+        public void ArchiveTP14(TpbetrecordModel data)
         {
             bool delete = configuration.GetValue<bool>("Delete");
 

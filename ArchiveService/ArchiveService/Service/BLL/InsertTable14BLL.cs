@@ -34,9 +34,9 @@ namespace ArchiveService.Service.BLL
 
             return false;
         }
-        public void Archive14(TpbetrecordModel data)
+        public void ArchiveTP14(TpbetrecordModel data)
         {
-            insertTable14Service.Archive14(data);
+            insertTable14Service.ArchiveTP14(data);
         }
 
     }

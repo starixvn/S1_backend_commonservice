@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace ArchiveService.Service.DAL
 {
-    public class DelOldItemFromTPService
+    public class DelOldItemService
     {
         private readonly IConfiguration configuration;
-        public DelOldItemFromTPService(IConfiguration configuration)
+        public DelOldItemService(IConfiguration configuration)
         {
             this.configuration = configuration;
         }
