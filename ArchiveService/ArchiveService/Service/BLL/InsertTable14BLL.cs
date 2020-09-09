@@ -25,7 +25,7 @@ namespace ArchiveService.Service.BLL
             }
             catch (MySqlException ex)
             {
-              //  Console.WriteLine("InsterToTp14 Exception ex.Number ::" + ex.Number);
+                //  Console.WriteLine("InsterToTp14 Exception ex.Number ::" + ex.Number);
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     return true;
@@ -36,7 +36,7 @@ namespace ArchiveService.Service.BLL
         }
         public void Archive14(TpbetrecordModel data)
         {
-                insertTable14Service.Archive14(data);
+            insertTable14Service.Archive14(data);
         }
 
     }

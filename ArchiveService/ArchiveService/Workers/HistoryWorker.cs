@@ -63,14 +63,18 @@ namespace ArchiveService.Workers
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
                             //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
-                            processDate = today;
                             var data = quaryTableBLL.GetTpData(configuration.GetValue<int>("LiminNum"));
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
+                                {
                                     insertTable14BLL.Archive14(item);
+                                }
                                 else
+                                {
+                                    processDate = today;
                                     break;
+                                }
                             }
 
                             nCount = data.Count();
