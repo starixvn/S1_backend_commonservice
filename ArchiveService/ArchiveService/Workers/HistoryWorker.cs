@@ -80,6 +80,7 @@ namespace ArchiveService.Workers
                             nCount = data.Count();
                             if (nCount < configuration.GetValue<int>("LiminNum"))
                             {
+                                processDate = today;
                                 break;
                             }
 
