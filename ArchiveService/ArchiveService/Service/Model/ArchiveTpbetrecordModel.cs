@@ -29,5 +29,7 @@ namespace ArchiveService.Service.Model
         public long TicketKey { set; get; }
         public int BonusId { set; get; }
         public DateTime CreateTime { set; get; }
+        public bool DoDelete { set; get; }
+        
     }
 }

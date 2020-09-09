@@ -67,11 +67,14 @@ namespace ArchiveService.Workers
                             var data = quaryTableBLL.GetTpData(configuration.GetValue<int>("LiminNum"));
                             foreach (var item in data)
                             {
-                                insertTable14BLL.Archive14(item);
+                                if (item.DoDelete)
+                                    insertTable14BLL.Archive14(item);
+                                else
+                                    break;
                             }
 
                             nCount = data.Count();
-                            if (nCount < 1000)
+                            if (nCount < configuration.GetValue<int>("LiminNum"))
                             {
                                 break;
                             }
