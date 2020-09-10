@@ -27,9 +27,9 @@ namespace ArchiveService.Service.DAL
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             conn.Execute("Archive_TpBetRecord14_Ins", data, commandType: CommandType.StoredProcedure);
         }
-        public void Archive14(TpbetrecordModel data)
+        public void ArchiveTP14(TpbetrecordModel data)
         {
-            bool delete = configuration.GetValue<bool>("Delete");
+            bool delete = configuration.GetValue<bool>("TPArchiveCFG:Delete");
 
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             conn.Open();
@@ -47,6 +47,50 @@ namespace ArchiveService.Service.DAL
                 {
                     if (delete)
                         conn.Execute("Archive_TpBetRecord_Del", data, commandType: CommandType.StoredProcedure);
+                }
+            }
+        }
+        public void ArchiveDG14(Bettranslc_DGModel data)
+        {
+            bool delete = configuration.GetValue<bool>("DGArchiveCFG:Delete");
+
+            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            conn.Open();
+            try
+            {
+                conn.Execute("Archive_bettranslc_dg14_Ins", data, commandType: CommandType.StoredProcedure);
+                if (delete)
+                    conn.Execute("Archive_bettranslc_dg_Del", data, commandType: CommandType.StoredProcedure);
+            }
+            catch (MySqlException ex)
+            {
+                logger.LogError(ex.Message);
+                if (ex.Number == 1062) //匯入資料重複
+                {
+                    if (delete)
+                        conn.Execute("Archive_bettranslc_dg_Del", data, commandType: CommandType.StoredProcedure);
+                }
+            }
+        }
+        public void ArchivePP14(Bettransrng_PPModel data)
+        {
+            bool delete = configuration.GetValue<bool>("PPArchiveCFG:Delete");
+
+            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            conn.Open();
+            try
+            {
+                conn.Execute("Archive_bettransrng_pp14_Ins", data, commandType: CommandType.StoredProcedure);
+                if (delete)
+                    conn.Execute("Archive_bettransrng_pp_Del", data, commandType: CommandType.StoredProcedure);
+            }
+            catch (MySqlException ex)
+            {
+                logger.LogError(ex.Message);
+                if (ex.Number == 1062) //匯入資料重複
+                {
+                    if (delete)
+                        conn.Execute("Archive_bettransrng_pp_Del", data, commandType: CommandType.StoredProcedure);
                 }
             }
         }
