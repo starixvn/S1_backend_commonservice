@@ -19,5 +19,13 @@ namespace ArchiveService.Service.BLL
         {
             return queryTableService.GetTpData(LinminNum);
         }
+        public IEnumerable<Bettranslc_DGModel> GetDGData(int LinminNum)
+        {
+            return queryTableService.GetDGData(LinminNum);
+        }
+        public IEnumerable<Bettransrng_PPModel> GetPPData(int LinminNum)
+        {
+            return queryTableService.GetPPData(LinminNum);
+        }
     }
 }

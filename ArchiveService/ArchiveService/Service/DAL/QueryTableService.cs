@@ -24,9 +24,17 @@ namespace ArchiveService.Service.DAL
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             return conn.Query<TpbetrecordModel>("Archive_TpBetRecord_Get", new { LIMINNUM = LinminNum }, commandType: CommandType.StoredProcedure);
         }
+        public IEnumerable<Bettranslc_DGModel> GetDGData(int LinminNum)
+        {
+            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            return conn.Query<Bettranslc_DGModel>("Archive_bettranslc_dg_Get", new { LIMINNUM = LinminNum }, commandType: CommandType.StoredProcedure);
+        }
+        public IEnumerable<Bettransrng_PPModel> GetPPData(int LinminNum)
+        {
+            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            return conn.Query<Bettransrng_PPModel>("Archive_bettransrng_pp_Get", new { LIMINNUM = LinminNum }, commandType: CommandType.StoredProcedure);
+        }
 
-        // string connetStr = "server=127.0.0.1;port=3306;user=root;password=1234; database=Siebog;";
-        //using var sqlConn = new MySqlConnection(configuration.);
-        //sqlConn.Execute("David_Test_tpbetrecord14_Ins", data, commandType: CommandType.StoredProcedure);
+
     }
 }

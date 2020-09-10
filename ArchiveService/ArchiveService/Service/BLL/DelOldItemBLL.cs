@@ -19,5 +19,13 @@ namespace ArchiveService.Service.BLL
         {
                 delOldItemService.DelOldItemFromTP(data);
         }
+        public void DelOldItemFromDG(Bettranslc_DGModel data)
+        {
+            delOldItemService.DelOldItemFromDG(data);
+        }
+        public void DelOldItemFromPP(Bettransrng_PPModel data)
+        {
+            delOldItemService.DelOldItemFromPP(data);
+        }
     }
 }
