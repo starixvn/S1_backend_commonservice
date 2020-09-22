@@ -22,11 +22,15 @@ namespace ArchiveService
             services.AddSingleton<QueryTableBLL>();
             services.AddSingleton<InsertTable14BLL>();
             services.AddSingleton<DelOldItemBLL>();
+            services.AddSingleton<ResetUsagedBLL>();
+            
 
             /* DAL */
             services.AddSingleton<QueryTableService>();
             services.AddSingleton<InsertTable14Service>();
             services.AddSingleton<DelOldItemService>();
+            services.AddSingleton<ResetUsagedService>();
+            
 
 
         }

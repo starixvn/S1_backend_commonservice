@@ -1,0 +1,103 @@
+[33mcommit 1d0af4b618bed84a289de293ade6eb534b722190[m[33m ([m[1;36mHEAD -> [m[1;32mFeature_AS[m[33m, [m[1;31morigin/Feature_AS[m[33m)[m
+Author: DESKTOP-5E2SMSG\davidyea <david.yea@ailabpte.co>
+Date:   Thu Sep 10 13:13:40 2020 +0800
+
+    加入封存dg table
+    加入封存pp table
+
+[33mcommit 48a30f238c21083367e81d9fd552a69ff1800b82[m
+Author: DESKTOP-5E2SMSG\davidyea <david.yea@ailabpte.co>
+Date:   Wed Sep 9 16:15:48 2020 +0800
+
+    名稱修改
+
+[33mcommit ad057bdd17fe3192ad40019531f4860bc9d6c45f[m
+Author: DESKTOP-5E2SMSG\davidyea <david.yea@ailabpte.co>
+Date:   Wed Sep 9 15:51:57 2020 +0800
+
+    名稱修改
+
+[33mcommit 06c731fd6a7c975c57f98b9f3dc0e580debd7dc6[m[33m ([m[1;31morigin/HEAD[m[33m, [m[1;31morigin/DEV[m[33m, [m[1;32mDEV[m[33m)[m
+Author: 史考特 <scott.wang@example.com>
+Date:   Wed Sep 9 14:42:52 2020 +0800
+
+    Fixed flow
+
+[33mcommit d7896184d2627ad97b0c3f1ca63b7fa8afae0773[m
+Author: 史考特 <scott.wang@example.com>
+Date:   Wed Sep 9 14:41:24 2020 +0800
+
+    Fixed exception flow
+
+[33mcommit ac9dde0cfe9d76bbca4713f7807d322dba8d8b86[m
+Merge: cb9c702 5eee3e6
+Author: Scott Wang <scott.wang@ailabpte.co>
+Date:   Wed Sep 9 12:26:27 2020 +0800
+
+    Merge branch 'Feature_AS' into 'DEV'
+    
+    amend time
+    
+    See merge request rd/commonservice!3
+
+[33mcommit 5eee3e617b8df2ad22521726537b5e0d1dc2a532[m
+Author: DESKTOP-5E2SMSG\davidyea <david.yea@ailabpte.co>
+Date:   Wed Sep 9 12:17:42 2020 +0800
+
+    amend time
+
+[33mcommit cb9c70220ae684f5d643eb75b9d1d13fc0795355[m
+Author: 史考特 <scott.wang@example.com>
+Date:   Tue Sep 8 20:17:42 2020 +0800
+
+    Fixed DateTime Bugs
+
+[33mcommit 34a2acbc9e7cd9ea4b986c968c056768a768015b[m
+Author: 史考特 <scott.wang@example.com>
+Date:   Tue Sep 8 19:51:21 2020 +0800
+
+    Fixed Bugs for Delete Flag
+
+[33mcommit 9cacabe1a7b69bfaf1ea31a21e7cc686788473b6[m
+Author: 史考特 <scott.wang@example.com>
+Date:   Tue Sep 8 19:48:45 2020 +0800
+
+    Change NoDelete to Delete
+
+[33mcommit 7c5cf529d869931ed98c4c55594c9272b35de877[m
+Author: 史考特 <scott.wang@example.com>
+Date:   Tue Sep 8 18:25:14 2020 +0800
+
+    Adjust for express
+
+[33mcommit 48c06e42df1109161f69d149c943cec5c607f19e[m
+Merge: d223346 e90e022
+Author: Scott Wang <scott.wang@ailabpte.co>
+Date:   Tue Sep 8 12:46:36 2020 +0800
+
+    Merge branch 'feature_AS' into 'DEV'
+    
+    Feature as
+    
+    See merge request rd/commonservice!2
+
+[33mcommit e90e022ae3cf9e56534a931c55e1a76056df217d[m
+Author: DESKTOP-5E2SMSG\davidyea <david.yea@ailabpte.co>
+Date:   Tue Sep 8 12:20:54 2020 +0800
+
+    流程修改
+    Inster dele 分開
+    處理重複資料
+    加入Archive14()
+
+[33mcommit 6c5f192f935260ee1c2e058bb633e636ff02ddcd[m
+Author: DESKTOP-5E2SMSG\davidyea <david.yea@ailabpte.co>
+Date:   Mon Sep 7 18:32:56 2020 +0800
+
+    init
+
+[33mcommit d223346b3bcec53916e8cb3edabaa1c832764739[m
+Author: Scott Wang <scott.wang@ailabpte.co>
+Date:   Mon Sep 7 14:31:20 2020 +0800
+
+    Add gitignore
