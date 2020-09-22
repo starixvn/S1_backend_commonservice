@@ -15,24 +15,29 @@ namespace ArchiveService.Workers
         private readonly ILogger<HistoryWorker> logger;
         private readonly QueryTableBLL queryTableBLL;
         private readonly InsertTable14BLL insertTable14BLL;
+        private readonly ResetUsagedBLL resetUsagedBLL;
         private Timer timerTPArchive;
         private Timer timerPPArchive;
         private Timer timerDGArchive;
+        private Timer timerResetUsage;
         private readonly IConfiguration configuration;
         private string processTPDate = "";
         private string processDGDate = "";
         private string processPPDate = "";
+        private string processResetUsageDate = "";
 
         public HistoryWorker(
             ILogger<HistoryWorker> logger,
             QueryTableBLL queryTableBLL,
             InsertTable14BLL insertTable14BLL,
+            ResetUsagedBLL resetUsagedBLL,
             IConfiguration configuration
         )
         {
             this.logger = logger;
             this.queryTableBLL = queryTableBLL;
             this.insertTable14BLL = insertTable14BLL;
+            this.resetUsagedBLL = resetUsagedBLL;
             this.configuration = configuration;
         }
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -41,7 +46,9 @@ namespace ArchiveService.Workers
             timerTPArchive = new Timer(DoTPArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerDGArchive = new Timer(DoDGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerPPArchive = new Timer(DoPPArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
-           
+            timerResetUsage = new Timer(DoResetUsageTask, null, TimeSpan.Zero, TimeSpan.Zero);
+
+
             return Task.CompletedTask;
         }
         private void DoTPArchiveTask(object state)
@@ -239,6 +246,32 @@ namespace ArchiveService.Workers
                 //    Console.WriteLine("finish new timer");
             }
         }
+        private void DoResetUsageTask(object state)
+        {
+            var beginAt = GetUTC8Time();
+            string today = beginAt.Date.ToString();
+
+            try
+            {
+                if (today != processResetUsageDate) //Don't do it again.
+                {
+                    if (resetUsagedBLL.ResetUsage() == 1)
+                        processResetUsageDate = today;
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+            }
+            finally
+            {
+                //   Console.WriteLine("finally in");
+                TimeSpan dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("ResetUsaged:CheckTime"));
+                timerResetUsage.Change(dueTimeSpan, TimeSpan.Zero);
+                //    Console.WriteLine("finish new timer");
+            }
+        }
         private DateTime GetUTC8Time()
         {
             return new DateTimeOffset(DateTime.Now).ToOffset(new TimeSpan(8, 0, 0)).DateTime;
@@ -250,6 +283,7 @@ namespace ArchiveService.Workers
             timerTPArchive?.Change(Timeout.Infinite, 0);
             timerPPArchive?.Change(Timeout.Infinite, 0);
             timerDGArchive?.Change(Timeout.Infinite, 0);
+            timerResetUsage?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
     }
