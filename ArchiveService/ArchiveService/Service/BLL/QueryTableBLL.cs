@@ -27,5 +27,9 @@ namespace ArchiveService.Service.BLL
         {
             return queryTableService.GetPPData(LinminNum);
         }
+        public IEnumerable<BettransRng_SGModel> GetSGData(int LinminNum)
+        {
+            return queryTableService.GetSGData(LinminNum);
+        }
     }
 }

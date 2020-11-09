@@ -19,11 +19,13 @@ namespace ArchiveService.Workers
         private Timer timerTPArchive;
         private Timer timerPPArchive;
         private Timer timerDGArchive;
+        private Timer timerSGArchive;
         private Timer timerResetUsage;
         private readonly IConfiguration configuration;
         private string processTPDate = "";
         private string processDGDate = "";
         private string processPPDate = "";
+        private string processSGDate = "";
         private string processResetUsageDate = "";
 
         public HistoryWorker(
@@ -47,7 +49,7 @@ namespace ArchiveService.Workers
             //timerDGArchive = new Timer(DoDGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerPPArchive = new Timer(DoPPArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             //timerResetUsage = new Timer(DoResetUsageTask, null, TimeSpan.Zero, TimeSpan.Zero);
-
+            timerSGArchive = new Timer(DoSGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             return Task.CompletedTask;
         }
         private void DoTPArchiveTask(object state)
@@ -77,7 +79,7 @@ namespace ArchiveService.Workers
                         {
                             //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
                             var data = queryTableBLL.GetTpData(configuration.GetValue<int>("TPArchiveCFG:LiminNum"));
-                          //  Console.WriteLine("queryTP");
+                            //  Console.WriteLine("queryTP");
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
@@ -142,7 +144,7 @@ namespace ArchiveService.Workers
                         {
                             //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
                             var data = queryTableBLL.GetDGData(configuration.GetValue<int>("DGArchiveCFG:LiminNum"));
-                           // Console.WriteLine("queryDG");
+                            // Console.WriteLine("queryDG");
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
@@ -173,7 +175,7 @@ namespace ArchiveService.Workers
                 logger.LogError(ex.Message);
             }
             finally
-            { 
+            {
                 //   Console.WriteLine("finally in");
                 TimeSpan dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("DGArchiveCFG:CheckTime"));
                 timerDGArchive.Change(dueTimeSpan, TimeSpan.Zero);
@@ -207,7 +209,7 @@ namespace ArchiveService.Workers
                         {
                             //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
                             var data = queryTableBLL.GetPPData(configuration.GetValue<int>("PPArchiveCFG:LiminNum"));
-                           // Console.WriteLine("queryPP");
+                            // Console.WriteLine("queryPP");
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
@@ -245,6 +247,71 @@ namespace ArchiveService.Workers
                 //    Console.WriteLine("finish new timer");
             }
         }
+        private void DoSGArchiveTask(object state)
+        {
+            // Console.WriteLine("DoTask start");
+            var beginAt = GetUTC8Time();
+            string today = beginAt.Date.ToString();
+
+            try
+            {
+                if (DateTime.TryParse($"{beginAt.ToString("yyyy/MM/dd")} {configuration.GetValue<string>("SGArchiveCFG:StartTime")}", out DateTime startTime) &&
+                    DateTime.TryParse($"{beginAt.ToString("yyyy/MM/dd")} {configuration.GetValue<string>("SGArchiveCFG:EndTime")}", out DateTime endTime))
+                {
+
+                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+
+                    if (endTime < startTime)
+                    {
+                        endTime = endTime.AddDays(1);
+                    }
+
+                    int nCount = 0;
+
+                    if (today != processSGDate) //Don't do it again.
+                    {
+                        while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
+                        {
+                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
+                            var data = queryTableBLL.GetSGData(configuration.GetValue<int>("SGArchiveCFG:LiminNum"));
+                            // Console.WriteLine("querySG");
+                            foreach (var item in data)
+                            {
+                                if (item.DoDelete)
+                                {
+                                    insertTable14BLL.ArchiveSG14(item);
+                                }
+                                else
+                                {
+                                    processSGDate = today;
+                                    break;
+                                }
+                            }
+
+                            nCount = data.Count();
+                            if (nCount < configuration.GetValue<int>("SGArchiveCFG:LiminNum"))
+                            {
+                                processSGDate = today;
+                                break;
+                            }
+
+                            Thread.Sleep(configuration.GetValue<int>("SGArchiveCFG:ColdDownTime") * 1000);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+            }
+            finally
+            {
+                //   Console.WriteLine("finally in");
+                TimeSpan dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("SGArchiveCFG:CheckTime"));
+                timerSGArchive.Change(dueTimeSpan, TimeSpan.Zero);
+                //    Console.WriteLine("finish new timer");
+            }
+        }
         private void DoResetUsageTask(object state)
         {
             var beginAt = GetUTC8Time();
@@ -257,7 +324,7 @@ namespace ArchiveService.Workers
                     if (resetUsagedBLL.ResetUsage() == 1)
                         processResetUsageDate = today;
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -282,6 +349,7 @@ namespace ArchiveService.Workers
             timerTPArchive?.Change(Timeout.Infinite, 0);
             timerPPArchive?.Change(Timeout.Infinite, 0);
             timerDGArchive?.Change(Timeout.Infinite, 0);
+            timerSGArchive?.Change(Timeout.Infinite, 0);
             timerResetUsage?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
