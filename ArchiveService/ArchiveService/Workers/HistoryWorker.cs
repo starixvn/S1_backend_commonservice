@@ -44,10 +44,9 @@ namespace ArchiveService.Workers
         {
 
             timerTPArchive = new Timer(DoTPArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
-            timerDGArchive = new Timer(DoDGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
+            //timerDGArchive = new Timer(DoDGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerPPArchive = new Timer(DoPPArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
-            timerResetUsage = new Timer(DoResetUsageTask, null, TimeSpan.Zero, TimeSpan.Zero);
-
+            //timerResetUsage = new Timer(DoResetUsageTask, null, TimeSpan.Zero, TimeSpan.Zero);
 
             return Task.CompletedTask;
         }
@@ -59,8 +58,8 @@ namespace ArchiveService.Workers
 
             try
             {
-                if (DateTime.TryParse($"{beginAt.ToString("yyyy/MM/dd")} {configuration.GetValue<string>("TPArchiveCFG:StartTime")}", out DateTime startTime) &&
-                    DateTime.TryParse($"{beginAt.ToString("yyyy/MM/dd")} {configuration.GetValue<string>("TPArchiveCFG:EndTime")}", out DateTime endTime))
+                if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("TPArchiveCFG:StartTime")}", out DateTime startTime) &&
+                    DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("TPArchiveCFG:EndTime")}", out DateTime endTime))
                 {
 
                     logger.LogInformation($"{startTime} - {endTime} {beginAt}");
@@ -124,8 +123,8 @@ namespace ArchiveService.Workers
 
             try
             {
-                if (DateTime.TryParse($"{beginAt.ToString("yyyy/MM/dd")} {configuration.GetValue<string>("DGArchiveCFG:StartTime")}", out DateTime startTime) &&
-                    DateTime.TryParse($"{beginAt.ToString("yyyy/MM/dd")} {configuration.GetValue<string>("DGArchiveCFG:EndTime")}", out DateTime endTime))
+                if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("DGArchiveCFG:StartTime")}", out DateTime startTime) &&
+                    DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("DGArchiveCFG:EndTime")}", out DateTime endTime))
                 {
 
                     logger.LogInformation($"{startTime} - {endTime} {beginAt}");
@@ -189,8 +188,8 @@ namespace ArchiveService.Workers
 
             try
             {
-                if (DateTime.TryParse($"{beginAt.ToString("yyyy/MM/dd")} {configuration.GetValue<string>("PPArchiveCFG:StartTime")}", out DateTime startTime) &&
-                    DateTime.TryParse($"{beginAt.ToString("yyyy/MM/dd")} {configuration.GetValue<string>("PPArchiveCFG:EndTime")}", out DateTime endTime))
+                if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("PPArchiveCFG:StartTime")}", out DateTime startTime) &&
+                    DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("PPArchiveCFG:EndTime")}", out DateTime endTime))
                 {
 
                     logger.LogInformation($"{startTime} - {endTime} {beginAt}");
