@@ -94,5 +94,27 @@ namespace ArchiveService.Service.DAL
                 }
             }
         }
+        public void ArchiveSG14(BettransRng_SGModel data)
+        {
+            bool delete = configuration.GetValue<bool>("SGArchiveCFG:Delete");
+
+            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            conn.Open();
+            try
+            {
+                conn.Execute("Archive_BettransRng_SG_Ins", data, commandType: CommandType.StoredProcedure);
+                if (delete)
+                    conn.Execute("Archive_BettransRng_SG_Del", data, commandType: CommandType.StoredProcedure);
+            }
+            catch (MySqlException ex)
+            {
+                logger.LogError(ex.Message);
+                if (ex.Number == 1062) //匯入資料重複
+                {
+                    if (delete)
+                        conn.Execute("Archive_BettransRng_SG_Del", data, commandType: CommandType.StoredProcedure);
+                }
+            }
+        }
     }
 }
