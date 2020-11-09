@@ -34,6 +34,11 @@ namespace ArchiveService.Service.DAL
             using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             return conn.Query<Bettransrng_PPModel>("Archive_bettransrng_pp_Get", new { LIMINNUM = LinminNum }, commandType: CommandType.StoredProcedure);
         }
+        public IEnumerable<BettransRng_SGModel> GetSGData(int LinminNum)
+        {
+            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            return conn.Query<BettransRng_SGModel>("Archive_BettransRng_SG_Get", new { LIMINNUM = LinminNum }, commandType: CommandType.StoredProcedure);
+        }
 
 
     }
