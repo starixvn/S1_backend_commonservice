@@ -50,6 +50,10 @@ namespace ArchiveService.Service.BLL
         {
             insertTable14Service.ArchiveSG14(data);
         }
+        public void ArchivePG14(BettransRng_PGModel data)
+        {
+            insertTable14Service.ArchivePG14(data);
+        }
 
     }
 }

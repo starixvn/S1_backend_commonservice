@@ -31,5 +31,9 @@ namespace ArchiveService.Service.BLL
         {
             return queryTableService.GetSGData(LinminNum);
         }
+        public IEnumerable<BettransRng_PGModel> GetPGData(int LinminNum)
+        {
+            return queryTableService.GetPGData(LinminNum);
+        }
     }
 }
