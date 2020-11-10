@@ -35,5 +35,11 @@ namespace ArchiveService.Service.DAL
 
             conn.Execute("Archive_bettransrng_pp_Del", data, commandType: CommandType.StoredProcedure);
         }
+        public void DelOldItemFromPG(BettransRng_PGModel data)
+        {
+            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+
+            conn.Execute("Archive_BettransRng_PG_Del", data, commandType: CommandType.StoredProcedure);
+        }
     }
 }
