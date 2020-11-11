@@ -93,6 +93,10 @@ namespace ArchiveService.Service.DAL
                         conn.Execute("Archive_bettransrng_pp_Del", data, commandType: CommandType.StoredProcedure);
                 }
             }
+            finally
+            {
+                conn.Close();
+            }
         }
         public void ArchiveSG14(BettransRng_SGModel data)
         {

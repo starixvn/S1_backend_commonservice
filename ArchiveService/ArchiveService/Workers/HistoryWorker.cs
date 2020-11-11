@@ -49,7 +49,7 @@ namespace ArchiveService.Workers
 
             timerTPArchive = new Timer(DoTPArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             //timerDGArchive = new Timer(DoDGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
-            timerPPArchive = new Timer(DoPPArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
+            timerPPArchive = new Timer(DoPPArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
             //timerResetUsage = new Timer(DoResetUsageTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerSGArchive = new Timer(DoSGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerPGArchive = new Timer(DoPGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
@@ -185,7 +185,7 @@ namespace ArchiveService.Workers
                 //    Console.WriteLine("finish new timer");
             }
         }
-        private void DoPPArchiveTask(object state)
+        private async void DoPPArchiveTaskAsync(object state)
         {
             // Console.WriteLine("DoTask start");
             var beginAt = GetUTC8Time();
@@ -208,6 +208,7 @@ namespace ArchiveService.Workers
 
                     if (today != processPPDate) //Don't do it again.
                     {
+                        List<Task> allTasks = new List<Task>();
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
                             //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
@@ -217,7 +218,12 @@ namespace ArchiveService.Workers
                             {
                                 if (item.DoDelete)
                                 {
-                                    insertTable14BLL.ArchivePP14(item);
+                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchivePP14(item)));
+                                    if (allTasks.Count == 4)
+                                    {
+                                        await Task.WhenAll(allTasks);
+                                        allTasks.Clear();
+                                    }
                                 }
                                 else
                                 {
@@ -232,8 +238,12 @@ namespace ArchiveService.Workers
                                 processPPDate = today;
                                 break;
                             }
-
-                            Thread.Sleep(configuration.GetValue<int>("PPArchiveCFG:ColdDownTime") * 1000);
+                            if (allTasks.Count > 0)
+                            {
+                                await Task.WhenAll(allTasks);
+                                allTasks.Clear();
+                            }
+                            //Thread.Sleep(configuration.GetValue<int>("PPArchiveCFG:ColdDownTime") * 1000);
                         }
                     }
                 }
