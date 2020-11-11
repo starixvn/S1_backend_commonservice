@@ -31,5 +31,9 @@ namespace ArchiveService.Service.BLL
         {
             delOldItemService.DelOldItemFromPG(data);
         }
+        public void DelOldItemFromGPI(BettransRng_GPIModel data)
+        {
+            delOldItemService.DelOldItemFromGPI(data);
+        }
     }
 }

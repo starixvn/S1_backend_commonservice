@@ -54,6 +54,10 @@ namespace ArchiveService.Service.BLL
         {
             insertTable14Service.ArchivePG14(data);
         }
+        public void ArchiveGPI14(BettransRng_GPIModel data)
+        {
+            insertTable14Service.ArchiveGPI14(data);
+        }
 
     }
 }
