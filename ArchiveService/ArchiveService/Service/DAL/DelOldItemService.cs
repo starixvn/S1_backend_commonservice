@@ -47,5 +47,11 @@ namespace ArchiveService.Service.DAL
 
             conn.Execute("Archive_BettransRng_GPI_Del", data, commandType: CommandType.StoredProcedure);
         }
+        public void DelOldItemFromTpSlotsBonus(TpSlotsBonusModel data)
+        {
+            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+
+            conn.Execute("Archive_TpSlotsBonus_Del", data, commandType: CommandType.StoredProcedure);
+        }
     }
 }

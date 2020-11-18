@@ -39,5 +39,9 @@ namespace ArchiveService.Service.BLL
         {
             return queryTableService.GetGPIData(LinminNum);
         }
+        public IEnumerable<TpSlotsBonusModel> GetTpSlotsBonusData(int LinminNum)
+        {
+            return queryTableService.GetTpSlotsBonusData(LinminNum);
+        }
     }
 }

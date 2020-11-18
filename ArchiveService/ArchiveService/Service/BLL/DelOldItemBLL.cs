@@ -35,5 +35,9 @@ namespace ArchiveService.Service.BLL
         {
             delOldItemService.DelOldItemFromGPI(data);
         }
+        public void DelOldItemFromTpSlotsBonus(TpSlotsBonusModel data)
+        {
+            delOldItemService.DelOldItemFromTpSlotsBonus(data);
+        }
     }
 }

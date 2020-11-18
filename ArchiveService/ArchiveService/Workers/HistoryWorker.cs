@@ -22,14 +22,17 @@ namespace ArchiveService.Workers
         private Timer timerSGArchive;
         private Timer timerPGArchive;
         private Timer timerGPIArchive;
+        private Timer timerTpSBArchive;
         private Timer timerResetUsage;
         private readonly IConfiguration configuration;
+        private readonly DelOldItemBLL delOldItemBLL;
         private string processTPDate = "";
         private string processDGDate = "";
         private string processPPDate = "";
         private string processSGDate = "";
         private string processPGDate = "";
         private string processGPIDate = "";
+        private string processTpSBDate = "";
         private string processResetUsageDate = "";
 
         public HistoryWorker(
@@ -37,6 +40,7 @@ namespace ArchiveService.Workers
             QueryTableBLL queryTableBLL,
             InsertTable14BLL insertTable14BLL,
             ResetUsagedBLL resetUsagedBLL,
+            DelOldItemBLL delOldItemBLL,
             IConfiguration configuration
         )
         {
@@ -45,6 +49,7 @@ namespace ArchiveService.Workers
             this.insertTable14BLL = insertTable14BLL;
             this.resetUsagedBLL = resetUsagedBLL;
             this.configuration = configuration;
+            this.delOldItemBLL = delOldItemBLL;
         }
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -56,6 +61,7 @@ namespace ArchiveService.Workers
             timerSGArchive = new Timer(DoSGArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
             timerPGArchive = new Timer(DoPGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerGPIArchive = new Timer(DoGPIArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
+            timerTpSBArchive = new Timer(DoTpSBArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
             return Task.CompletedTask;
         }
         private void DoTPArchiveTask(object state)
@@ -481,6 +487,82 @@ namespace ArchiveService.Workers
                 //    Console.WriteLine("finish new timer");
             }
         }
+
+        private async void DoTpSBArchiveTaskAsync(object state)
+        {
+            // Console.WriteLine("DoTask start");
+            var beginAt = GetUTC8Time();
+            string today = beginAt.Date.ToString();
+
+            try
+            {
+                if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("TpSBArchiveCFG:StartTime")}", out DateTime startTime) &&
+                    DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("TpSBArchiveCFG:EndTime")}", out DateTime endTime))
+                {
+
+                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+
+                    if (endTime < startTime)
+                    {
+                        endTime = endTime.AddDays(1);
+                    }
+
+                    int nCount = 0;
+
+                    if (today != processTpSBDate) //Don't do it again.
+                    {
+                        List<Task> allTasks = new List<Task>();
+                        while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
+                        {
+                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
+                            var data = queryTableBLL.GetTpSlotsBonusData(configuration.GetValue<int>("TpSBArchiveCFG:LiminNum"));
+                            // Console.WriteLine("queryGPI");
+                            foreach (var item in data)
+                            {
+                                if (item.DoDelete)
+                                {
+                                    allTasks.Add(Task.Run(() => delOldItemBLL.DelOldItemFromTpSlotsBonus(item)));
+                                    if (allTasks.Count >= 4)
+                                    {
+                                        await Task.WhenAll(allTasks);
+                                        allTasks.Clear();
+                                    }
+                                }
+                                else
+                                {
+                                    processTpSBDate = today;
+                                    break;
+                                }
+                            }
+
+                            nCount = data.Count();
+                            if (nCount < configuration.GetValue<int>("TpSBArchiveCFG:LiminNum"))
+                            {
+                                processTpSBDate = today;
+                                break;
+                            }
+                            //if (allTasks.Count > 0)
+                            //{
+                            //    await Task.WhenAll(allTasks);
+                            //    allTasks.Clear();
+                            //}
+                            //Thread.Sleep(configuration.GetValue<int>("GPIArchiveCFG:ColdDownTime") * 1000);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+            }
+            finally
+            {
+                //   Console.WriteLine("finally in");
+                TimeSpan dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("TpSBArchiveCFG:CheckTime"));
+                timerTpSBArchive.Change(dueTimeSpan, TimeSpan.Zero);
+                //    Console.WriteLine("finish new timer");
+            }
+        }
         private void DoResetUsageTask(object state)
         {
             var beginAt = GetUTC8Time();
@@ -521,6 +603,7 @@ namespace ArchiveService.Workers
             timerSGArchive?.Change(Timeout.Infinite, 0);
             timerPGArchive?.Change(Timeout.Infinite, 0);
             timerGPIArchive?.Change(Timeout.Infinite, 0);
+            timerTpSBArchive?.Change(Timeout.Infinite, 0);
             timerResetUsage?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
