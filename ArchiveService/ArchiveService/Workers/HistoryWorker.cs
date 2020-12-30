@@ -22,6 +22,7 @@ namespace ArchiveService.Workers
         private Timer timerSGArchive;
         private Timer timerPGArchive;
         private Timer timerGPIArchive;
+        private Timer timerCQ9Archive;
         private Timer timerTpSBArchive;
         private Timer timerResetUsage;
         private readonly IConfiguration configuration;
@@ -32,6 +33,7 @@ namespace ArchiveService.Workers
         private string processSGDate = "";
         private string processPGDate = "";
         private string processGPIDate = "";
+        private string processCQ9Date = "";
         private string processTpSBDate = "";
         private string processResetUsageDate = "";
 
@@ -62,6 +64,8 @@ namespace ArchiveService.Workers
             timerPGArchive = new Timer(DoPGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerGPIArchive = new Timer(DoGPIArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
             timerTpSBArchive = new Timer(DoTpSBArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
+            //timerTpSBArchive = new Timer(DoTpSBArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
+            timerCQ9Archive = new Timer(DoCQ9ArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
             return Task.CompletedTask;
         }
         private void DoTPArchiveTask(object state)
@@ -589,6 +593,81 @@ namespace ArchiveService.Workers
                 //    Console.WriteLine("finish new timer");
             }
         }
+        private async void DoCQ9ArchiveTaskAsync(object state)
+        {
+            // Console.WriteLine("DoTask start");
+            var beginAt = GetUTC8Time();
+            string today = beginAt.Date.ToString();
+
+            try
+            {
+                if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("CQ9ArchiveCFG:StartTime")}", out DateTime startTime) &&
+                    DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("CQ9ArchiveCFG:EndTime")}", out DateTime endTime))
+                {
+
+                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+
+                    if (endTime < startTime)
+                    {
+                        endTime = endTime.AddDays(1);
+                    }
+
+                    int nCount = 0;
+
+                    if (today != processCQ9Date) //Don't do it again.
+                    {
+                        List<Task> allTasks = new List<Task>();
+                        while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
+                        {
+                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
+                            var data = queryTableBLL.GetCQ9Data(configuration.GetValue<int>("CQ9ArchiveCFG:LiminNum"));
+                            // Console.WriteLine("queryCQ9");
+                            foreach (var item in data)
+                            {
+                                if (item.DoDelete)
+                                {
+                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchiveCP914(item)));
+                                    if (allTasks.Count >= 4)
+                                    {
+                                        await Task.WhenAll(allTasks);
+                                        allTasks.Clear();
+                                    }
+                                }
+                                else
+                                {
+                                    processCQ9Date = today;
+                                    break;
+                                }
+                            }
+
+                            nCount = data.Count();
+                            if (nCount < configuration.GetValue<int>("CQ9ArchiveCFG:LiminNum"))
+                            {
+                                processCQ9Date = today;
+                                break;
+                            }
+                            //if (allTasks.Count > 0)
+                            //{
+                            //    await Task.WhenAll(allTasks);
+                            //    allTasks.Clear();
+                            //}
+                            //Thread.Sleep(configuration.GetValue<int>("CQ9ArchiveCFG:ColdDownTime") * 1000);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+            }
+            finally
+            {
+                //   Console.WriteLine("finally in");
+                TimeSpan dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("CQ9ArchiveCFG:CheckTime"));
+                timerCQ9Archive.Change(dueTimeSpan, TimeSpan.Zero);
+                //    Console.WriteLine("finish new timer");
+            }
+        }
         private DateTime GetUTC8Time()
         {
             return new DateTimeOffset(DateTime.Now).ToOffset(new TimeSpan(8, 0, 0)).DateTime;
@@ -603,6 +682,7 @@ namespace ArchiveService.Workers
             timerSGArchive?.Change(Timeout.Infinite, 0);
             timerPGArchive?.Change(Timeout.Infinite, 0);
             timerGPIArchive?.Change(Timeout.Infinite, 0);
+            timerCQ9Archive?.Change(Timeout.Infinite, 0);
             timerTpSBArchive?.Change(Timeout.Infinite, 0);
             timerResetUsage?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;

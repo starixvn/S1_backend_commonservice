@@ -43,5 +43,9 @@ namespace ArchiveService.Service.BLL
         {
             return queryTableService.GetTpSlotsBonusData(LinminNum);
         }
+        public IEnumerable<BettransRNG_CQ9Model> GetCQ9Data(int LinminNum)
+        {
+            return queryTableService.GetCQ9Data(LinminNum);
+        }
     }
 }

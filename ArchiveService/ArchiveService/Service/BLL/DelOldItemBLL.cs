@@ -39,5 +39,9 @@ namespace ArchiveService.Service.BLL
         {
             delOldItemService.DelOldItemFromTpSlotsBonus(data);
         }
+        public void DelOldItemFromCQ9(BettransRng_GPIModel data)
+        {
+            delOldItemService.DelOldItemFromCQ9(data);
+        }
     }
 }
