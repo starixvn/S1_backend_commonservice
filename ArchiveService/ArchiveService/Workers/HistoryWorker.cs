@@ -64,7 +64,6 @@ namespace ArchiveService.Workers
             timerPGArchive = new Timer(DoPGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerGPIArchive = new Timer(DoGPIArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
             timerTpSBArchive = new Timer(DoTpSBArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
-            //timerTpSBArchive = new Timer(DoTpSBArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
             timerCQ9Archive = new Timer(DoCQ9ArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
             return Task.CompletedTask;
         }
@@ -676,15 +675,15 @@ namespace ArchiveService.Workers
         {
             //  Console.WriteLine("StopAsync(CancellationToken cancellationToken)");
             //WriteToFile("WriteToFileHostedService: Process Stopped");
+            //timerResetUsage?.Change(Timeout.Infinite, 0);
             timerTPArchive?.Change(Timeout.Infinite, 0);
             timerPPArchive?.Change(Timeout.Infinite, 0);
             timerDGArchive?.Change(Timeout.Infinite, 0);
             timerSGArchive?.Change(Timeout.Infinite, 0);
             timerPGArchive?.Change(Timeout.Infinite, 0);
             timerGPIArchive?.Change(Timeout.Infinite, 0);
-            timerCQ9Archive?.Change(Timeout.Infinite, 0);
             timerTpSBArchive?.Change(Timeout.Infinite, 0);
-            timerResetUsage?.Change(Timeout.Infinite, 0);
+            timerCQ9Archive?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
     }

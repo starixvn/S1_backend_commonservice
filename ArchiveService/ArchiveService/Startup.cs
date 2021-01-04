@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ArchiveService.Service.BLL;
 using ArchiveService.Service.DAL;
+using ArchiveService.Workers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -30,9 +31,9 @@ namespace ArchiveService
             services.AddSingleton<InsertTable14Service>();
             services.AddSingleton<DelOldItemService>();
             services.AddSingleton<ResetUsagedService>();
-            
 
-
+            /* Worker */
+            services.AddHostedService<HistoryWorker>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

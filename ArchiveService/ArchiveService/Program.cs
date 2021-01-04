@@ -24,9 +24,6 @@ namespace ArchiveService
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                }).ConfigureServices((hostContext, services) =>
-                {
-                    services.AddHostedService<HistoryWorker>();
                 });
     }
 }
