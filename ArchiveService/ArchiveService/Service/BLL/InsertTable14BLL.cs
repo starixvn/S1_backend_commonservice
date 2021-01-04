@@ -58,6 +58,9 @@ namespace ArchiveService.Service.BLL
         {
             insertTable14Service.ArchiveGPI14(data);
         }
-
+        public void ArchiveCP914(BettransRNG_CQ9Model data)
+        {
+            insertTable14Service.ArchiveCP914(data);
+        }
     }
 }
