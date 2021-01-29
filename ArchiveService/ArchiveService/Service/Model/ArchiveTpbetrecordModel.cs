@@ -22,6 +22,7 @@ namespace ArchiveService.Service.Model
         public DateTime SettledTime { set; get; }
         public decimal Stake { set; get; }
         public decimal? ValidBet { set; get; }
+        public decimal? Revenue { set; get; }
         public decimal WinlostAmount { set; get; }
         public int SettlementType { set; get; }
         public int TicketStatus { set; get; }
