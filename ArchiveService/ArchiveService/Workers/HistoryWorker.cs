@@ -122,7 +122,7 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -187,7 +187,7 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -262,7 +262,7 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -334,7 +334,7 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -405,7 +405,7 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -480,7 +480,7 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -556,7 +556,7 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -582,7 +582,7 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
             }
             finally
             {
@@ -657,7 +657,7 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
             }
             finally
             {

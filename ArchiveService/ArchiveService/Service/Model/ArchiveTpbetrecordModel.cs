@@ -30,6 +30,8 @@ namespace ArchiveService.Service.Model
         public long TicketKey { set; get; }
         public int BonusId { set; get; }
         public DateTime CreateTime { set; get; }
+        public decimal? ProgressiveBet { set; get; }
+        public decimal? ProgressiveWin { set; get; }
         public bool DoDelete { set; get; }
         
     }

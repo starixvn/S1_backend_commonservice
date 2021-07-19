@@ -41,7 +41,7 @@ namespace ArchiveService.Service.DAL
             }
             catch (MySqlException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
                 // Console.WriteLine("InsterToTp14 Exception ex.Number ::" + ex.Number);
                 if (ex.Number == 1062) //匯入資料重複
                 {
@@ -64,7 +64,7 @@ namespace ArchiveService.Service.DAL
             }
             catch (MySqlException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
@@ -86,7 +86,7 @@ namespace ArchiveService.Service.DAL
             }
             catch (MySqlException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
@@ -112,7 +112,7 @@ namespace ArchiveService.Service.DAL
             }
             catch (MySqlException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
@@ -134,7 +134,7 @@ namespace ArchiveService.Service.DAL
             }
             catch (MySqlException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
@@ -156,7 +156,7 @@ namespace ArchiveService.Service.DAL
             }
             catch (MySqlException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
@@ -178,7 +178,7 @@ namespace ArchiveService.Service.DAL
             }
             catch (MySqlException ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex, ex.Message);
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
