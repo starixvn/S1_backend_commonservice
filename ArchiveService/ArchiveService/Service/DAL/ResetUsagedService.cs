@@ -19,9 +19,9 @@ namespace ArchiveService.Service.DAL
         }
         public int ResetUsage()
         {
-            int returncode = 0;
-            using MySqlConnection conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
-            string[] BonusCode = configuration.GetSection("ResetUsaged:BonusCode").Get<string[]>();
+            var returncode = 0;
+            using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            var BonusCode = configuration.GetSection("ResetUsaged:BonusCode").Get<string[]>();
             conn.Open();
             foreach (var item in BonusCode)
             {
