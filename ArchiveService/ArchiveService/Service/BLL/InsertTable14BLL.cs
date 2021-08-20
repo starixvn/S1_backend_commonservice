@@ -34,9 +34,9 @@ namespace ArchiveService.Service.BLL
 
             return false;
         }
-        public void ArchiveTP14(TpbetrecordModel data)
+        public void ArchiveTP14(TpbetrecordModel data, bool delete)
         {
-            insertTable14Service.ArchiveTP14(data);
+            insertTable14Service.ArchiveTP14(data, delete);
         }
         public void ArchiveDG14(Bettranslc_DGModel data)
         {
