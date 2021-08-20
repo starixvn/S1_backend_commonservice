@@ -54,11 +54,12 @@ namespace ArchiveService.Service.DAL
             var delete = configuration.GetValue<bool>("DGArchiveCFG:Delete");
 
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            var parameter = new DynamicParameters(data);
             try
             {
-                conn.Execute("Archive_bettranslc_dg14_Ins", data, commandType: CommandType.StoredProcedure);
+                conn.Execute("Archive_bettranslc_dg14_Ins", parameter, commandType: CommandType.StoredProcedure);
                 if (delete)
-                    conn.Execute("Archive_bettranslc_dg_Del", data, commandType: CommandType.StoredProcedure);
+                    conn.Execute("Archive_bettranslc_dg_Del", parameter, commandType: CommandType.StoredProcedure);
             }
             catch (MySqlException ex)
             {
@@ -66,7 +67,7 @@ namespace ArchiveService.Service.DAL
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
-                        conn.Execute("Archive_bettranslc_dg_Del", data, commandType: CommandType.StoredProcedure);
+                        conn.Execute("Archive_bettranslc_dg_Del", parameter, commandType: CommandType.StoredProcedure);
                 }
             }
             catch (Exception ex)
@@ -79,11 +80,12 @@ namespace ArchiveService.Service.DAL
             var delete = configuration.GetValue<bool>("PPArchiveCFG:Delete");
 
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            var parameter = new DynamicParameters(data);
             try
             {
-                conn.Execute("Archive_bettransrng_pp14_Ins", data, commandType: CommandType.StoredProcedure);
+                conn.Execute("Archive_bettransrng_pp14_Ins", parameter, commandType: CommandType.StoredProcedure);
                 if (delete)
-                    conn.Execute("Archive_bettransrng_pp_Del", data, commandType: CommandType.StoredProcedure);
+                    conn.Execute("Archive_bettransrng_pp_Del", parameter, commandType: CommandType.StoredProcedure);
             }
             catch (MySqlException ex)
             {
@@ -91,7 +93,7 @@ namespace ArchiveService.Service.DAL
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
-                        conn.Execute("Archive_bettransrng_pp_Del", data, commandType: CommandType.StoredProcedure);
+                        conn.Execute("Archive_bettransrng_pp_Del", parameter, commandType: CommandType.StoredProcedure);
                 }
             }
             catch (Exception ex)
@@ -104,12 +106,12 @@ namespace ArchiveService.Service.DAL
             var delete = configuration.GetValue<bool>("SGArchiveCFG:Delete");
 
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
-            conn.Open();
+            var parameter = new DynamicParameters(data);
             try
             {
-                conn.Execute("Archive_BettransRng_SG_Ins", data, commandType: CommandType.StoredProcedure);
+                conn.Execute("Archive_BettransRng_SG_Ins", parameter, commandType: CommandType.StoredProcedure);
                 if (delete)
-                    conn.Execute("Archive_BettransRng_SG_Del", data, commandType: CommandType.StoredProcedure);
+                    conn.Execute("Archive_BettransRng_SG_Del", parameter, commandType: CommandType.StoredProcedure);
             }
             catch (MySqlException ex)
             {
@@ -117,7 +119,7 @@ namespace ArchiveService.Service.DAL
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
-                        conn.Execute("Archive_BettransRng_SG_Del", data, commandType: CommandType.StoredProcedure);
+                        conn.Execute("Archive_BettransRng_SG_Del", parameter, commandType: CommandType.StoredProcedure);
                 }
             }
             catch (Exception ex)
@@ -130,12 +132,12 @@ namespace ArchiveService.Service.DAL
             var delete = configuration.GetValue<bool>("PGArchiveCFG:Delete");
 
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
-            conn.Open();
+            var parameter = new DynamicParameters(data);
             try
             {
-                conn.Execute("Archive_BettransRng_PG14_Ins", data, commandType: CommandType.StoredProcedure);
+                conn.Execute("Archive_BettransRng_PG14_Ins", parameter, commandType: CommandType.StoredProcedure);
                 if (delete)
-                    conn.Execute("Archive_BettransRng_PG_Del", data, commandType: CommandType.StoredProcedure);
+                    conn.Execute("Archive_BettransRng_PG_Del", parameter, commandType: CommandType.StoredProcedure);
             }
             catch (MySqlException ex)
             {
@@ -143,7 +145,7 @@ namespace ArchiveService.Service.DAL
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
-                        conn.Execute("Archive_BettransRng_PG_Del", data, commandType: CommandType.StoredProcedure);
+                        conn.Execute("Archive_BettransRng_PG_Del", parameter, commandType: CommandType.StoredProcedure);
                 }
             }
             catch (Exception ex)
@@ -156,12 +158,12 @@ namespace ArchiveService.Service.DAL
             var delete = configuration.GetValue<bool>("GPIArchiveCFG:Delete");
 
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
-            conn.Open();
+            var parameter = new DynamicParameters(data);
             try
             {
-                conn.Execute("Archive_BettransRng_GPI14_Ins", data, commandType: CommandType.StoredProcedure);
+                conn.Execute("Archive_BettransRng_GPI14_Ins", parameter, commandType: CommandType.StoredProcedure);
                 if (delete)
-                    conn.Execute("Archive_BettransRng_GPI_Del", data, commandType: CommandType.StoredProcedure);
+                    conn.Execute("Archive_BettransRng_GPI_Del", parameter, commandType: CommandType.StoredProcedure);
             }
             catch (MySqlException ex)
             {
@@ -169,7 +171,7 @@ namespace ArchiveService.Service.DAL
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
-                        conn.Execute("Archive_BettransRng_GPI_Del", data, commandType: CommandType.StoredProcedure);
+                        conn.Execute("Archive_BettransRng_GPI_Del", parameter, commandType: CommandType.StoredProcedure);
                 }
             }
             catch (Exception ex)
@@ -182,11 +184,12 @@ namespace ArchiveService.Service.DAL
             var delete = configuration.GetValue<bool>("CQ9ArchiveCFG:Delete");
 
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+            var parameter = new DynamicParameters(data);
             try
             {
-                conn.Execute("Archive_BettransRNG_CQ914_Ins", data, commandType: CommandType.StoredProcedure);
+                conn.Execute("Archive_BettransRNG_CQ914_Ins", parameter, commandType: CommandType.StoredProcedure);
                 if (delete)
-                    conn.Execute("Archive_BettransRNG_CQ9_Del", data, commandType: CommandType.StoredProcedure);
+                    conn.Execute("Archive_BettransRNG_CQ9_Del", parameter, commandType: CommandType.StoredProcedure);
             }
             catch (MySqlException ex)
             {
@@ -194,7 +197,7 @@ namespace ArchiveService.Service.DAL
                 if (ex.Number == 1062) //匯入資料重複
                 {
                     if (delete)
-                        conn.Execute("Archive_BettransRNG_CQ9_Del", data, commandType: CommandType.StoredProcedure);
+                        conn.Execute("Archive_BettransRNG_CQ9_Del", parameter, commandType: CommandType.StoredProcedure);
                 }
             }
             catch (Exception ex)
