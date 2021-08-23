@@ -76,6 +76,7 @@ namespace ArchiveService.Workers
                 {
                     var delete = configuration.GetValue<bool>("TPArchiveCFG:Delete");
                     var limit = configuration.GetValue<int>("TPArchiveCFG:LiminNum");
+                    var taskCount = configuration.GetValue<int>("TPArchiveCFG:TaskCount");
 
                     if (endTime < startTime)
                     {
@@ -109,7 +110,7 @@ namespace ArchiveService.Workers
                                     }
                                 }));
 
-                                if (tasks.Count >= 4)
+                                if (tasks.Count >= taskCount)
                                 {
                                     await Task.WhenAll(tasks);
                                     tasks.Clear();
