@@ -64,7 +64,7 @@ namespace ArchiveService.Workers
             return Task.CompletedTask;
         }
 
-        private void DoTPArchiveTask(object state)
+        private async void DoTPArchiveTask(object state)
         {
             var beginAt = GetUTC8Time();
             var today = beginAt.Date.ToString();
@@ -84,38 +84,59 @@ namespace ArchiveService.Workers
 
                     if (today != processTPDate) //Don't do it again.
                     {
+                        var tasks = new List<Task>();
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
-                            var sw = Stopwatch.StartNew();
-                            var data = queryTableBLL.GetTpData(limit).ToList();
-                            foreach (var item in data)
-                            {
-                                if (item.DoDelete)
+                                var sw = Stopwatch.StartNew();
+                                var data = queryTableBLL.GetTpData(limit).ToList();
+                                foreach (var item in data)
                                 {
-                                    insertTable14BLL.ArchiveTP14(item, delete);
+                                    if (!item.DoDelete)
+                                    {
+                                        processTPDate = today;
+                                        break;
+                                    }
+
+                                    tasks.Add(Task.Run(() =>
+                                    {
+                                        try
+                                        {
+                                            insertTable14BLL.ArchiveTP14(item, delete);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            logger.LogError(ex, GetCurrentAsyncMethod());
+                                        }
+                                    }));
+                                    
+                                    if (tasks.Count >= 4)
+                                    {
+                                        await Task.WhenAll(tasks);
+                                        tasks.Clear();
+                                    }
                                 }
-                                else
+                                
+                                if (tasks.Count > 0)
+                                {
+                                    await Task.WhenAll(tasks);
+                                    tasks.Clear();
+                                }
+
+                                logger.LogInformation($"DoTPArchiveTask {sw.Elapsed:c}");
+                                if (data.Count < limit)
                                 {
                                     processTPDate = today;
                                     break;
                                 }
-                            }
-                            
-                            logger.LogInformation($"DoTPArchiveTask {sw.Elapsed:c}");
-                            if (data.Count < limit)
-                            {
-                                processTPDate = today;
-                                break;
-                            }
 
-                            Thread.Sleep(configuration.GetValue<int>("TPArchiveCFG:ColdDownTime") * 1000);
+                                Thread.Sleep(configuration.GetValue<int>("TPArchiveCFG:ColdDownTime") * 1000);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, GetCurrentMethod());
+                logger.LogError(ex, GetCurrentAsyncMethod());
             }
             finally
             {
