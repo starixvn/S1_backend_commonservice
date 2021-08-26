@@ -1,6 +1,5 @@
 ﻿using ArchiveService.Service.DAL;
 using ArchiveService.Service.Model;
-using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,51 +15,34 @@ namespace ArchiveService.Service.BLL
         {
             this.insertTable14Service = insertTable14Service;
         }
-        public bool InsterToTp14(TpbetrecordModel data)
-        {
-            try
-            {
-                insertTable14Service.InsterToTp14(data);
-                return true;
-            }
-            catch (MySqlException ex)
-            {
-                //  Console.WriteLine("InsterToTp14 Exception ex.Number ::" + ex.Number);
-                if (ex.Number == 1062) //匯入資料重複
-                {
-                    return true;
-                }
-            }
 
-            return false;
-        }
         public void ArchiveTP14(TpbetrecordModel data, bool delete)
         {
             insertTable14Service.ArchiveTP14(data, delete);
         }
-        public void ArchiveDG14(Bettranslc_DGModel data)
+        // public void ArchiveDG14(Bettranslc_DGModel data)
+        // {
+        //     insertTable14Service.ArchiveDG14(data);
+        // }
+        public void ArchivePP14(Bettransrng_PPModel data, bool delete)
         {
-            insertTable14Service.ArchiveDG14(data);
+            insertTable14Service.ArchivePP14(data, delete);
         }
-        public void ArchivePP14(Bettransrng_PPModel data)
+        public void ArchiveSG14(BettransRng_SGModel data, bool delete)
         {
-            insertTable14Service.ArchivePP14(data);
+            insertTable14Service.ArchiveSG14(data, delete);
         }
-        public void ArchiveSG14(BettransRng_SGModel data)
+        public void ArchivePG14(BettransRng_PGModel data, bool delete)
         {
-            insertTable14Service.ArchiveSG14(data);
+            insertTable14Service.ArchivePG14(data, delete);
         }
-        public void ArchivePG14(BettransRng_PGModel data)
+        public void ArchiveGPI14(BettransRng_GPIModel data, bool delete)
         {
-            insertTable14Service.ArchivePG14(data);
+            insertTable14Service.ArchiveGPI14(data, delete);
         }
-        public void ArchiveGPI14(BettransRng_GPIModel data)
+        public void ArchiveCP914(BettransRNG_CQ9Model data, bool delete)
         {
-            insertTable14Service.ArchiveGPI14(data);
-        }
-        public void ArchiveCP914(BettransRNG_CQ9Model data)
-        {
-            insertTable14Service.ArchiveCP914(data);
+            insertTable14Service.ArchiveCP914(data, delete);
         }
     }
 }

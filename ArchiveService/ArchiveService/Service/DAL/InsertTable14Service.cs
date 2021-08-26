@@ -20,11 +20,7 @@ namespace ArchiveService.Service.DAL
             this.logger = logger;
             this.configuration = configuration;
         }
-        public void InsterToTp14(TpbetrecordModel data)
-        {
-            using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
-            conn.Execute("Archive_TpBetRecord14_Ins", data, commandType: CommandType.StoredProcedure);
-        }
+
         public void ArchiveTP14(TpbetrecordModel data, bool delete)
         {
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
@@ -38,7 +34,7 @@ namespace ArchiveService.Service.DAL
             catch (MySqlException ex)
             {
                 logger.LogError(ex, GetCurrentMethod());
-                if (ex.Number == 1062) //匯入資料重複
+                if (ex.Number == (int)MySqlErrorCode.DuplicateKeyEntry) //匯入資料重複
                 {
                     if (delete)
                         conn.Execute("Archive_TpBetRecord_Del", parameter, commandType: CommandType.StoredProcedure);
@@ -49,36 +45,34 @@ namespace ArchiveService.Service.DAL
                 logger.LogError(ex, GetCurrentMethod());
             }
         }
-        public void ArchiveDG14(Bettranslc_DGModel data)
+        // public void ArchiveDG14(Bettranslc_DGModel data)
+        // {
+        //     var delete = configuration.GetValue<bool>("DGArchiveCFG:Delete");
+        //
+        //     using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
+        //     var parameter = new DynamicParameters(data);
+        //     try
+        //     {
+        //         conn.Execute("Archive_bettranslc_dg14_Ins", parameter, commandType: CommandType.StoredProcedure);
+        //         if (delete)
+        //             conn.Execute("Archive_bettranslc_dg_Del", parameter, commandType: CommandType.StoredProcedure);
+        //     }
+        //     catch (MySqlException ex)
+        //     {
+        //         logger.LogError(ex, GetCurrentMethod());
+        //         if (ex.Number == (int)MySqlErrorCode.DuplicateKeyEntry) //匯入資料重複
+        //         {
+        //             if (delete)
+        //                 conn.Execute("Archive_bettranslc_dg_Del", parameter, commandType: CommandType.StoredProcedure);
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         logger.LogError(ex, GetCurrentMethod());
+        //     }
+        // }
+        public void ArchivePP14(Bettransrng_PPModel data, bool delete)
         {
-            var delete = configuration.GetValue<bool>("DGArchiveCFG:Delete");
-
-            using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
-            var parameter = new DynamicParameters(data);
-            try
-            {
-                conn.Execute("Archive_bettranslc_dg14_Ins", parameter, commandType: CommandType.StoredProcedure);
-                if (delete)
-                    conn.Execute("Archive_bettranslc_dg_Del", parameter, commandType: CommandType.StoredProcedure);
-            }
-            catch (MySqlException ex)
-            {
-                logger.LogError(ex, GetCurrentMethod());
-                if (ex.Number == 1062) //匯入資料重複
-                {
-                    if (delete)
-                        conn.Execute("Archive_bettranslc_dg_Del", parameter, commandType: CommandType.StoredProcedure);
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, GetCurrentMethod());
-            }
-        }
-        public void ArchivePP14(Bettransrng_PPModel data)
-        {
-            var delete = configuration.GetValue<bool>("PPArchiveCFG:Delete");
-
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             var parameter = new DynamicParameters(data);
             try
@@ -90,7 +84,7 @@ namespace ArchiveService.Service.DAL
             catch (MySqlException ex)
             {
                 logger.LogError(ex, GetCurrentMethod());
-                if (ex.Number == 1062) //匯入資料重複
+                if (ex.Number == (int)MySqlErrorCode.DuplicateKeyEntry) //匯入資料重複
                 {
                     if (delete)
                         conn.Execute("Archive_bettransrng_pp_Del", parameter, commandType: CommandType.StoredProcedure);
@@ -101,10 +95,8 @@ namespace ArchiveService.Service.DAL
                 logger.LogError(ex, GetCurrentMethod());
             }
         }
-        public void ArchiveSG14(BettransRng_SGModel data)
+        public void ArchiveSG14(BettransRng_SGModel data, bool delete)
         {
-            var delete = configuration.GetValue<bool>("SGArchiveCFG:Delete");
-
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             var parameter = new DynamicParameters(data);
             try
@@ -116,7 +108,7 @@ namespace ArchiveService.Service.DAL
             catch (MySqlException ex)
             {
                 logger.LogError(ex, GetCurrentMethod());
-                if (ex.Number == 1062) //匯入資料重複
+                if (ex.Number == (int)MySqlErrorCode.DuplicateKeyEntry) //匯入資料重複
                 {
                     if (delete)
                         conn.Execute("Archive_BettransRng_SG_Del", parameter, commandType: CommandType.StoredProcedure);
@@ -127,10 +119,8 @@ namespace ArchiveService.Service.DAL
                 logger.LogError(ex, GetCurrentMethod());
             }
         }
-        public void ArchivePG14(BettransRng_PGModel data)
+        public void ArchivePG14(BettransRng_PGModel data, bool delete)
         {
-            var delete = configuration.GetValue<bool>("PGArchiveCFG:Delete");
-
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             var parameter = new DynamicParameters(data);
             try
@@ -142,7 +132,7 @@ namespace ArchiveService.Service.DAL
             catch (MySqlException ex)
             {
                 logger.LogError(ex, GetCurrentMethod());
-                if (ex.Number == 1062) //匯入資料重複
+                if (ex.Number == (int)MySqlErrorCode.DuplicateKeyEntry) //匯入資料重複
                 {
                     if (delete)
                         conn.Execute("Archive_BettransRng_PG_Del", parameter, commandType: CommandType.StoredProcedure);
@@ -153,10 +143,8 @@ namespace ArchiveService.Service.DAL
                 logger.LogError(ex, GetCurrentMethod());
             }
         }
-        public void ArchiveGPI14(BettransRng_GPIModel data)
+        public void ArchiveGPI14(BettransRng_GPIModel data, bool delete)
         {
-            var delete = configuration.GetValue<bool>("GPIArchiveCFG:Delete");
-
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             var parameter = new DynamicParameters(data);
             try
@@ -168,7 +156,7 @@ namespace ArchiveService.Service.DAL
             catch (MySqlException ex)
             {
                 logger.LogError(ex, GetCurrentMethod());
-                if (ex.Number == 1062) //匯入資料重複
+                if (ex.Number == (int)MySqlErrorCode.DuplicateKeyEntry) //匯入資料重複
                 {
                     if (delete)
                         conn.Execute("Archive_BettransRng_GPI_Del", parameter, commandType: CommandType.StoredProcedure);
@@ -179,10 +167,8 @@ namespace ArchiveService.Service.DAL
                 logger.LogError(ex, GetCurrentMethod());
             }
         }
-        public void ArchiveCP914(BettransRNG_CQ9Model data)
+        public void ArchiveCP914(BettransRNG_CQ9Model data, bool delete)
         {                                                
-            var delete = configuration.GetValue<bool>("CQ9ArchiveCFG:Delete");
-
             using var conn = new MySqlConnection(configuration.GetConnectionString("ConnectionString"));
             var parameter = new DynamicParameters(data);
             try
@@ -194,7 +180,7 @@ namespace ArchiveService.Service.DAL
             catch (MySqlException ex)
             {
                 logger.LogError(ex, GetCurrentMethod());
-                if (ex.Number == 1062) //匯入資料重複
+                if (ex.Number == (int)MySqlErrorCode.DuplicateKeyEntry) //匯入資料重複
                 {
                     if (delete)
                         conn.Execute("Archive_BettransRNG_CQ9_Del", parameter, commandType: CommandType.StoredProcedure);
