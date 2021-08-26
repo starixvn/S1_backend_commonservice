@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,26 +55,28 @@ namespace ArchiveService.Workers
         {
             timerTPArchive = new Timer(DoTPArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             //timerDGArchive = new Timer(DoDGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
-            timerPPArchive = new Timer(DoPPArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
+            timerPPArchive = new Timer(DoPPArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             //timerResetUsage = new Timer(DoResetUsageTask, null, TimeSpan.Zero, TimeSpan.Zero);
-            timerSGArchive = new Timer(DoSGArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
+            timerSGArchive = new Timer(DoSGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             timerPGArchive = new Timer(DoPGArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
-            timerGPIArchive = new Timer(DoGPIArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
-            timerTpSBArchive = new Timer(DoTpSBArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
-            timerCQ9Archive = new Timer(DoCQ9ArchiveTaskAsync, null, TimeSpan.Zero, TimeSpan.Zero);
+            timerGPIArchive = new Timer(DoGPIArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
+            timerTpSBArchive = new Timer(DoTpSBArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
+            timerCQ9Archive = new Timer(DoCQ9ArchiveTask, null, TimeSpan.Zero, TimeSpan.Zero);
             return Task.CompletedTask;
         }
 
-        private async void DoTPArchiveTask(object state)
+        private void DoTPArchiveTask(object state)
         {
             var beginAt = GetUTC8Time();
-            var today = beginAt.Date.ToString();
+            var today = beginAt.Date.ToString(CultureInfo.InvariantCulture);
 
             try
             {
                 if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("TPArchiveCFG:StartTime")}", out var startTime) &&
                     DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("TPArchiveCFG:EndTime")}", out var endTime))
                 {
+                    logger.LogInformation($"TP - {startTime} - {endTime} {beginAt}");
+                    
                     var delete = configuration.GetValue<bool>("TPArchiveCFG:Delete");
                     var limit = configuration.GetValue<int>("TPArchiveCFG:LiminNum");
                     var taskCount = configuration.GetValue<int>("TPArchiveCFG:TaskCount");
@@ -92,38 +95,40 @@ namespace ArchiveService.Workers
                             var data = queryTableBLL.GetTpData(limit).ToList();
                             foreach (var item in data)
                             {
-                                if (!item.DoDelete)
+                                if (item.DoDelete)
                                 {
-                                    processTPDate = today;
-                                    break;
+                                    tasks.Add(Task.Run(() =>
+                                    {
+                                        try
+                                        {
+                                            insertTable14BLL.ArchiveTP14(item, delete);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            logger.LogError(ex, GetCurrentMethod());
+                                        }
+                                    }));
+
+                                    if (tasks.Count >= taskCount)
+                                    {
+                                        Task.WhenAll(tasks).Wait();
+                                        tasks.Clear();
+                                    }
                                 }
-
-                                tasks.Add(Task.Run(() =>
+                                else
                                 {
-                                    try
-                                    {
-                                        insertTable14BLL.ArchiveTP14(item, delete);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        logger.LogError(ex, GetCurrentAsyncMethod());
-                                    }
-                                }));
-
-                                if (tasks.Count >= taskCount)
-                                {
-                                    await Task.WhenAll(tasks);
-                                    tasks.Clear();
+                                    processPPDate = today;
+                                    break;
                                 }
                             }
 
                             if (tasks.Count > 0)
                             {
-                                await Task.WhenAll(tasks);
+                                Task.WhenAll(tasks).Wait();
                                 tasks.Clear();
                             }
 
-                            logger.LogInformation($"DoTPArchiveTask {sw.Elapsed:c}");
+                            logger.LogInformation($"{GetCurrentMethod()} {sw.Elapsed:c}");
                             if (data.Count < limit)
                             {
                                 processTPDate = today;
@@ -137,118 +142,110 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, GetCurrentAsyncMethod());
-            }
-            finally
-            {
-                //   Console.WriteLine("finally in");
-                var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("TPArchiveCFG:CheckTime"));
-                timerTPArchive.Change(dueTimeSpan, TimeSpan.Zero);
-                //    Console.WriteLine("finish new timer");
-            }
-        }
-        private void DoDGArchiveTask(object state)
-        {
-            // Console.WriteLine("DoTask start");
-            var beginAt = GetUTC8Time();
-            var today = beginAt.Date.ToString();
-
-            try
-            {
-                if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("DGArchiveCFG:StartTime")}", out var startTime) &&
-                    DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("DGArchiveCFG:EndTime")}", out var endTime))
-                {
-
-                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
-
-                    if (endTime < startTime)
-                    {
-                        endTime = endTime.AddDays(1);
-                    }
-
-                    var nCount = 0;
-
-                    if (today != processDGDate) //Don't do it again.
-                    {
-                        while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
-                        {
-                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
-                            var data = queryTableBLL.GetDGData(configuration.GetValue<int>("DGArchiveCFG:LiminNum")).ToList();
-                            // Console.WriteLine("queryDG");
-                            foreach (var item in data)
-                            {
-                                if (item.DoDelete)
-                                {
-                                    insertTable14BLL.ArchiveDG14(item);
-                                }
-                                else
-                                {
-                                    processDGDate = today;
-                                    break;
-                                }
-                            }
-
-                            nCount = data.Count;
-                            if (nCount < configuration.GetValue<int>("DGArchiveCFG:LiminNum"))
-                            {
-                                processDGDate = today;
-                                break;
-                            }
-
-                            Thread.Sleep(configuration.GetValue<int>("DGArchiveCFG:ColdDownTime") * 1000);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
                 logger.LogError(ex, GetCurrentMethod());
             }
             finally
             {
-                //   Console.WriteLine("finally in");
-                var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("DGArchiveCFG:CheckTime"));
-                timerDGArchive.Change(dueTimeSpan, TimeSpan.Zero);
-                //    Console.WriteLine("finish new timer");
+                var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("TPArchiveCFG:CheckTime"));
+                timerTPArchive.Change(dueTimeSpan, TimeSpan.Zero);
             }
         }
-        private async void DoPPArchiveTaskAsync(object state)
+        // private void DoDGArchiveTask(object state)
+        // {
+        //     var beginAt = GetUTC8Time();
+        //     var today = beginAt.Date.ToString(CultureInfo.InvariantCulture);
+        //
+        //     try
+        //     {
+        //         if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("DGArchiveCFG:StartTime")}", out var startTime) &&
+        //             DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("DGArchiveCFG:EndTime")}", out var endTime))
+        //         {
+        //
+        //             logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+        //
+        //             if (endTime < startTime)
+        //             {
+        //                 endTime = endTime.AddDays(1);
+        //             }
+        //
+        //             var nCount = 0;
+        //
+        //             if (today != processDGDate) //Don't do it again.
+        //             {
+        //                 while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
+        //                 {
+        //                     var data = queryTableBLL.GetDGData(configuration.GetValue<int>("DGArchiveCFG:LiminNum")).ToList();
+        //                     foreach (var item in data)
+        //                     {
+        //                         if (item.DoDelete)
+        //                         {
+        //                             insertTable14BLL.ArchiveDG14(item);
+        //                         }
+        //                         else
+        //                         {
+        //                             processDGDate = today;
+        //                             break;
+        //                         }
+        //                     }
+        //
+        //                     nCount = data.Count;
+        //                     if (nCount < configuration.GetValue<int>("DGArchiveCFG:LiminNum"))
+        //                     {
+        //                         processDGDate = today;
+        //                         break;
+        //                     }
+        //
+        //                     Thread.Sleep(configuration.GetValue<int>("DGArchiveCFG:ColdDownTime") * 1000);
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         logger.LogError(ex, GetCurrentMethod());
+        //     }
+        //     finally
+        //     {
+        //         var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("DGArchiveCFG:CheckTime"));
+        //         timerDGArchive.Change(dueTimeSpan, TimeSpan.Zero);
+        //     }
+        // }
+        private void DoPPArchiveTask(object state)
         {
-            // Console.WriteLine("DoTask start");
             var beginAt = GetUTC8Time();
-            var today = beginAt.Date.ToString();
+            var today = beginAt.Date.ToString(CultureInfo.InvariantCulture);
 
             try
             {
                 if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("PPArchiveCFG:StartTime")}", out var startTime) &&
                     DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("PPArchiveCFG:EndTime")}", out var endTime))
                 {
-
-                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+                    logger.LogInformation($"PP - {startTime} - {endTime} {beginAt}");
+                    
+                    var delete = configuration.GetValue<bool>("PPArchiveCFG:Delete");
+                    var limit = configuration.GetValue<int>("PPArchiveCFG:LiminNum");
+                    var taskCount = configuration.GetValue<int>("PPArchiveCFG:TaskCount");
 
                     if (endTime < startTime)
                     {
                         endTime = endTime.AddDays(1);
                     }
 
-                    var nCount = 0;
-
                     if (today != processPPDate) //Don't do it again.
                     {
                         var allTasks = new List<Task>();
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
-                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
-                            var data = queryTableBLL.GetPPData(configuration.GetValue<int>("PPArchiveCFG:LiminNum"));
-                            // Console.WriteLine("queryPP");
+                            var sw = Stopwatch.StartNew();
+                            var data = queryTableBLL.GetPPData(limit).ToList();
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
                                 {
-                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchivePP14(item)));
-                                    if (allTasks.Count >= 4)
+                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchivePP14(item, delete)));
+                                    if (allTasks.Count >= taskCount)
                                     {
-                                        await Task.WhenAll(allTasks);
+                                        Task.WhenAll(allTasks).Wait();
                                         allTasks.Clear();
                                     }
                                 }
@@ -259,54 +256,54 @@ namespace ArchiveService.Workers
                                 }
                             }
 
-                            nCount = data.Count();
-                            if (nCount < configuration.GetValue<int>("PPArchiveCFG:LiminNum"))
+                            if (allTasks.Count > 0)
+                            {
+                                Task.WhenAll(allTasks).Wait();
+                                allTasks.Clear();
+                            }
+
+                            logger.LogInformation($"{GetCurrentMethod()} {sw.Elapsed:c}");
+                            if (data.Count < limit)
                             {
                                 processPPDate = today;
                                 break;
                             }
-                            //if (allTasks.Count > 0)
-                            //{
-                            //    await Task.WhenAll(allTasks);
-                            //    allTasks.Clear();
-                            //}
-                            //Thread.Sleep(configuration.GetValue<int>("PPArchiveCFG:ColdDownTime") * 1000);
+                            
+                            Thread.Sleep(configuration.GetValue<int>("PPArchiveCFG:ColdDownTime") * 1000);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, GetCurrentAsyncMethod());
+                logger.LogError(ex, GetCurrentMethod());
             }
             finally
             {
-                //   Console.WriteLine("finally in");
                 var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("PPArchiveCFG:CheckTime"));
                 timerPPArchive.Change(dueTimeSpan, TimeSpan.Zero);
-                //    Console.WriteLine("finish new timer");
             }
         }
-        private async void DoSGArchiveTaskAsync(object state)
+        private void DoSGArchiveTask(object state)
         {
-            // Console.WriteLine("DoTask start");
             var beginAt = GetUTC8Time();
-            var today = beginAt.Date.ToString();
+            var today = beginAt.Date.ToString(CultureInfo.InvariantCulture);
 
             try
             {
                 if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("SGArchiveCFG:StartTime")}", out var startTime) &&
                     DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("SGArchiveCFG:EndTime")}", out var endTime))
                 {
-
-                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+                    logger.LogInformation($"SG - {startTime} - {endTime} {beginAt}");
+                    
+                    var delete = configuration.GetValue<bool>("SGArchiveCFG:Delete");
+                    var limit = configuration.GetValue<int>("SGArchiveCFG:LiminNum");
+                    var taskCount = configuration.GetValue<int>("SGArchiveCFG:TaskCount");
 
                     if (endTime < startTime)
                     {
                         endTime = endTime.AddDays(1);
                     }
-
-                    var nCount = 0;
 
                     if (today != processSGDate) //Don't do it again.
                     {
@@ -314,17 +311,16 @@ namespace ArchiveService.Workers
 
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
-                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
-                            var data = queryTableBLL.GetSGData(configuration.GetValue<int>("SGArchiveCFG:LiminNum"));
-                            // Console.WriteLine("querySG");
+                            var sw = Stopwatch.StartNew();
+                            var data = queryTableBLL.GetSGData(limit).ToList();
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
                                 {
-                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchiveSG14(item)));
-                                    if (allTasks.Count >= 4)
+                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchiveSG14(item, delete)));
+                                    if (allTasks.Count >= taskCount)
                                     {
-                                        await Task.WhenAll(allTasks);
+                                        Task.WhenAll(allTasks).Wait();
                                         allTasks.Clear();
                                     }
                                 }
@@ -335,8 +331,14 @@ namespace ArchiveService.Workers
                                 }
                             }
 
-                            nCount = data.Count();
-                            if (nCount < configuration.GetValue<int>("SGArchiveCFG:LiminNum"))
+                            if (allTasks.Count > 0)
+                            {
+                                Task.WhenAll(allTasks).Wait();
+                                allTasks.Clear();
+                            }
+
+                            logger.LogInformation($"{GetCurrentMethod()} {sw.Elapsed:c}");
+                            if (data.Count < limit)
                             {
                                 processSGDate = today;
                                 break;
@@ -349,53 +351,50 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, GetCurrentAsyncMethod());
+                logger.LogError(ex, GetCurrentMethod());
             }
             finally
             {
-                //   Console.WriteLine("finally in");
                 var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("SGArchiveCFG:CheckTime"));
                 timerSGArchive.Change(dueTimeSpan, TimeSpan.Zero);
-                //    Console.WriteLine("finish new timer");
             }
         }
-        private async void DoPGArchiveTask(object state)
+        private void DoPGArchiveTask(object state)
         {
-            // Console.WriteLine("DoTask start");
             var beginAt = GetUTC8Time();
-            var today = beginAt.Date.ToString();
+            var today = beginAt.Date.ToString(CultureInfo.InvariantCulture);
 
             try
             {
                 if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("PGArchiveCFG:StartTime")}", out var startTime) &&
                     DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("PGArchiveCFG:EndTime")}", out var endTime))
                 {
-
-                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+                    logger.LogInformation($"PG - {startTime} - {endTime} {beginAt}");
+                    
+                    var delete = configuration.GetValue<bool>("PGArchiveCFG:Delete");
+                    var limit = configuration.GetValue<int>("PGArchiveCFG:LiminNum");
+                    var taskCount = configuration.GetValue<int>("PGArchiveCFG:TaskCount");
 
                     if (endTime < startTime)
                     {
                         endTime = endTime.AddDays(1);
                     }
 
-                    var nCount = 0;
-
                     if (today != processPGDate) //Don't do it again.
                     {
                         var allTasks = new List<Task>();
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
-                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
-                            var data = queryTableBLL.GetPGData(configuration.GetValue<int>("PGArchiveCFG:LiminNum"));
-                            // Console.WriteLine("queryPG");
+                            var sw = Stopwatch.StartNew();
+                            var data = queryTableBLL.GetPGData(limit).ToList();
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
                                 {
-                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchivePG14(item)));
-                                    if (allTasks.Count >= 4)
+                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchivePG14(item, delete)));
+                                    if (allTasks.Count >= taskCount)
                                     {
-                                        await Task.WhenAll(allTasks);
+                                        Task.WhenAll(allTasks).Wait();
                                         allTasks.Clear();
                                     }
                                 }
@@ -406,8 +405,14 @@ namespace ArchiveService.Workers
                                 }
                             }
 
-                            nCount = data.Count();
-                            if (nCount < configuration.GetValue<int>("PGArchiveCFG:LiminNum"))
+                            if (allTasks.Count > 0)
+                            {
+                                Task.WhenAll(allTasks).Wait();
+                                allTasks.Clear();
+                            }
+
+                            logger.LogInformation($"{GetCurrentMethod()} {sw.Elapsed:c}");
+                            if (data.Count < limit)
                             {
                                 processPGDate = today;
                                 break;
@@ -420,53 +425,50 @@ namespace ArchiveService.Workers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, GetCurrentAsyncMethod());
+                logger.LogError(ex, GetCurrentMethod());
             }
             finally
             {
-                //   Console.WriteLine("finally in");
                 var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("PGArchiveCFG:CheckTime"));
                 timerPGArchive.Change(dueTimeSpan, TimeSpan.Zero);
-                //    Console.WriteLine("finish new timer");
             }
         }
-        private async void DoGPIArchiveTaskAsync(object state)
+        private void DoGPIArchiveTask(object state)
         {
-            // Console.WriteLine("DoTask start");
             var beginAt = GetUTC8Time();
-            var today = beginAt.Date.ToString();
+            var today = beginAt.Date.ToString(CultureInfo.InvariantCulture);
 
             try
             {
                 if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("GPIArchiveCFG:StartTime")}", out var startTime) &&
                     DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("GPIArchiveCFG:EndTime")}", out var endTime))
                 {
-
-                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+                    logger.LogInformation($"GPI - {startTime} - {endTime} {beginAt}");
+                    
+                    var delete = configuration.GetValue<bool>("GPIArchiveCFG:Delete");
+                    var limit = configuration.GetValue<int>("GPIArchiveCFG:LiminNum");
+                    var taskCount = configuration.GetValue<int>("GPIArchiveCFG:TaskCount");
 
                     if (endTime < startTime)
                     {
                         endTime = endTime.AddDays(1);
                     }
 
-                    var nCount = 0;
-
                     if (today != processGPIDate) //Don't do it again.
                     {
                         var allTasks = new List<Task>();
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
-                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
-                            var data = queryTableBLL.GetGPIData(configuration.GetValue<int>("GPIArchiveCFG:LiminNum"));
-                            // Console.WriteLine("queryGPI");
+                            var sw = Stopwatch.StartNew();
+                            var data = queryTableBLL.GetGPIData(limit).ToList();
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
                                 {
-                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchiveGPI14(item)));
-                                    if (allTasks.Count >= 4)
+                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchiveGPI14(item, delete)));
+                                    if (allTasks.Count >= taskCount)
                                     {
-                                        await Task.WhenAll(allTasks);
+                                        Task.WhenAll(allTasks).Wait();
                                         allTasks.Clear();
                                     }
                                 }
@@ -477,72 +479,70 @@ namespace ArchiveService.Workers
                                 }
                             }
 
-                            nCount = data.Count();
-                            if (nCount < configuration.GetValue<int>("GPIArchiveCFG:LiminNum"))
+                            if (allTasks.Count > 0)
+                            {
+                                Task.WhenAll(allTasks).Wait();
+                                allTasks.Clear();
+                            }
+
+                            logger.LogInformation($"{GetCurrentMethod()} {sw.Elapsed:c}");
+                            if (data.Count < limit)
                             {
                                 processGPIDate = today;
                                 break;
                             }
-                            //if (allTasks.Count > 0)
-                            //{
-                            //    await Task.WhenAll(allTasks);
-                            //    allTasks.Clear();
-                            //}
-                            //Thread.Sleep(configuration.GetValue<int>("GPIArchiveCFG:ColdDownTime") * 1000);
+                            
+                            Thread.Sleep(configuration.GetValue<int>("GPIArchiveCFG:ColdDownTime") * 1000);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, GetCurrentAsyncMethod());
+                logger.LogError(ex, GetCurrentMethod());
             }
             finally
             {
-                //   Console.WriteLine("finally in");
                 var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("GPIArchiveCFG:CheckTime"));
                 timerGPIArchive.Change(dueTimeSpan, TimeSpan.Zero);
-                //    Console.WriteLine("finish new timer");
             }
         }
 
-        private async void DoTpSBArchiveTaskAsync(object state)
+        private void DoTpSBArchiveTask(object state)
         {
-            // Console.WriteLine("DoTask start");
             var beginAt = GetUTC8Time();
-            var today = beginAt.Date.ToString();
+            var today = beginAt.Date.ToString(CultureInfo.InvariantCulture);
 
             try
             {
                 if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("TpSBArchiveCFG:StartTime")}", out var startTime) &&
                     DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("TpSBArchiveCFG:EndTime")}", out var endTime))
                 {
-
-                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+                    logger.LogInformation($"SB - {startTime} - {endTime} {beginAt}");
+                    
+                    var limit = configuration.GetValue<int>("TpSBArchiveCFG:LiminNum");
+                    var taskCount = configuration.GetValue<int>("TpSBArchiveCFG:TaskCount");
 
                     if (endTime < startTime)
                     {
                         endTime = endTime.AddDays(1);
                     }
 
-                    var nCount = 0;
-
                     if (today != processTpSBDate) //Don't do it again.
                     {
                         var allTasks = new List<Task>();
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
-                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
-                            var data = queryTableBLL.GetTpSlotsBonusData(configuration.GetValue<int>("TpSBArchiveCFG:LiminNum"));
-                            // Console.WriteLine("queryGPI");
+                            var sw = Stopwatch.StartNew();
+                            var data = queryTableBLL.GetTpSlotsBonusData(limit).ToList();
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
                                 {
                                     allTasks.Add(Task.Run(() => delOldItemBLL.DelOldItemFromTpSlotsBonus(item)));
-                                    if (allTasks.Count >= 4)
+                                    if (allTasks.Count >= taskCount)
                                     {
-                                        await Task.WhenAll(allTasks);
+                                        Task.WhenAll(allTasks).Wait();
                                         allTasks.Clear();
                                     }
                                 }
@@ -552,48 +552,24 @@ namespace ArchiveService.Workers
                                     break;
                                 }
                             }
+                            
+                            if (allTasks.Count > 0)
+                            {
+                                Task.WhenAll(allTasks).Wait();
+                                allTasks.Clear();
+                            }
 
-                            nCount = data.Count();
-                            if (nCount < configuration.GetValue<int>("TpSBArchiveCFG:LiminNum"))
+                            logger.LogInformation($"{GetCurrentMethod()} {sw.Elapsed:c}");
+                            if (data.Count < limit)
                             {
                                 processTpSBDate = today;
                                 break;
                             }
-                            //if (allTasks.Count > 0)
-                            //{
-                            //    await Task.WhenAll(allTasks);
-                            //    allTasks.Clear();
-                            //}
-                            //Thread.Sleep(configuration.GetValue<int>("GPIArchiveCFG:ColdDownTime") * 1000);
+
+                            Thread.Sleep(configuration.GetValue<int>("TpSBArchiveCFG:ColdDownTime") * 1000);
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, GetCurrentAsyncMethod());
-            }
-            finally
-            {
-                //   Console.WriteLine("finally in");
-                var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("TpSBArchiveCFG:CheckTime"));
-                timerTpSBArchive.Change(dueTimeSpan, TimeSpan.Zero);
-                //    Console.WriteLine("finish new timer");
-            }
-        }
-        private void DoResetUsageTask(object state)
-        {
-            var beginAt = GetUTC8Time();
-            var today = beginAt.Date.ToString();
-
-            try
-            {
-                if (today != processResetUsageDate) //Don't do it again.
-                {
-                    if (resetUsagedBLL.ResetUsage() == 1)
-                        processResetUsageDate = today;
-                }
-
             }
             catch (Exception ex)
             {
@@ -601,49 +577,70 @@ namespace ArchiveService.Workers
             }
             finally
             {
-                //   Console.WriteLine("finally in");
-                var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("ResetUsaged:CheckTime"));
-                timerResetUsage.Change(dueTimeSpan, TimeSpan.Zero);
-                //    Console.WriteLine("finish new timer");
+                var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("TpSBArchiveCFG:CheckTime"));
+                timerTpSBArchive.Change(dueTimeSpan, TimeSpan.Zero);
             }
         }
-        private async void DoCQ9ArchiveTaskAsync(object state)
+        // private void DoResetUsageTask(object state)
+        // {
+        //     var beginAt = GetUTC8Time();
+        //     var today = beginAt.Date.ToString(CultureInfo.InvariantCulture);
+        //
+        //     try
+        //     {
+        //         if (today != processResetUsageDate) //Don't do it again.
+        //         {
+        //             if (resetUsagedBLL.ResetUsage() == 1)
+        //                 processResetUsageDate = today;
+        //         }
+        //
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         logger.LogError(ex, GetCurrentMethod());
+        //     }
+        //     finally
+        //     {
+        //         var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("ResetUsaged:CheckTime"));
+        //         timerResetUsage.Change(dueTimeSpan, TimeSpan.Zero);
+        //     }
+        // }
+        private void DoCQ9ArchiveTask(object state)
         {
-            // Console.WriteLine("DoTask start");
             var beginAt = GetUTC8Time();
-            var today = beginAt.Date.ToString();
+            var today = beginAt.Date.ToString(CultureInfo.InvariantCulture);
 
             try
             {
                 if (DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("CQ9ArchiveCFG:StartTime")}", out var startTime) &&
                     DateTime.TryParse($"{beginAt:yyyy/MM/dd} {configuration.GetValue<string>("CQ9ArchiveCFG:EndTime")}", out var endTime))
                 {
-
-                    logger.LogInformation($"{startTime} - {endTime} {beginAt}");
+                    logger.LogInformation($"CQ9 - {startTime} - {endTime} {beginAt}");
+                    
+                    var delete = configuration.GetValue<bool>("CQ9ArchiveCFG:Delete");
+                    var limit = configuration.GetValue<int>("CQ9ArchiveCFG:LiminNum");
+                    var taskCount = configuration.GetValue<int>("CQ9ArchiveCFG:TaskCount");
 
                     if (endTime < startTime)
                     {
                         endTime = endTime.AddDays(1);
                     }
 
-                    var nCount = 0;
-
                     if (today != processCQ9Date) //Don't do it again.
                     {
                         var allTasks = new List<Task>();
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
-                            //   Console.WriteLine("dtnNowTime: " + dtnNowTime + " ProcessDate:" + ProcessDate);
-                            var data = queryTableBLL.GetCQ9Data(configuration.GetValue<int>("CQ9ArchiveCFG:LiminNum"));
-                            // Console.WriteLine("queryCQ9");
+                            var sw = Stopwatch.StartNew();
+                            var data = queryTableBLL.GetCQ9Data(limit).ToList();
                             foreach (var item in data)
                             {
                                 if (item.DoDelete)
                                 {
-                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchiveCP914(item)));
-                                    if (allTasks.Count >= 4)
+                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchiveCP914(item, delete)));
+                                    if (allTasks.Count >= taskCount)
                                     {
-                                        await Task.WhenAll(allTasks);
+                                        Task.WhenAll(allTasks).Wait();
                                         allTasks.Clear();
                                     }
                                 }
@@ -654,32 +651,32 @@ namespace ArchiveService.Workers
                                 }
                             }
 
-                            nCount = data.Count();
-                            if (nCount < configuration.GetValue<int>("CQ9ArchiveCFG:LiminNum"))
+                            if (allTasks.Count > 0)
+                            {
+                                Task.WhenAll(allTasks).Wait();
+                                allTasks.Clear();
+                            }
+
+                            logger.LogInformation($"{GetCurrentMethod()} {sw.Elapsed:c}");
+                            if (data.Count < limit)
                             {
                                 processCQ9Date = today;
                                 break;
                             }
-                            //if (allTasks.Count > 0)
-                            //{
-                            //    await Task.WhenAll(allTasks);
-                            //    allTasks.Clear();
-                            //}
-                            //Thread.Sleep(configuration.GetValue<int>("CQ9ArchiveCFG:ColdDownTime") * 1000);
+                            
+                            Thread.Sleep(configuration.GetValue<int>("CQ9ArchiveCFG:ColdDownTime") * 1000);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, GetCurrentAsyncMethod());
+                logger.LogError(ex, GetCurrentMethod());
             }
             finally
             {
-                //   Console.WriteLine("finally in");
                 var dueTimeSpan = TimeSpan.FromSeconds(configuration.GetValue<int>("CQ9ArchiveCFG:CheckTime"));
                 timerCQ9Archive.Change(dueTimeSpan, TimeSpan.Zero);
-                //    Console.WriteLine("finish new timer");
             }
         }
         private DateTime GetUTC8Time()
@@ -688,12 +685,10 @@ namespace ArchiveService.Workers
         }
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            //  Console.WriteLine("StopAsync(CancellationToken cancellationToken)");
-            //WriteToFile("WriteToFileHostedService: Process Stopped");
             //timerResetUsage?.Change(Timeout.Infinite, 0);
             timerTPArchive?.Change(Timeout.Infinite, 0);
             timerPPArchive?.Change(Timeout.Infinite, 0);
-            timerDGArchive?.Change(Timeout.Infinite, 0);
+            // timerDGArchive?.Change(Timeout.Infinite, 0);
             timerSGArchive?.Change(Timeout.Infinite, 0);
             timerPGArchive?.Change(Timeout.Infinite, 0);
             timerGPIArchive?.Change(Timeout.Infinite, 0);
