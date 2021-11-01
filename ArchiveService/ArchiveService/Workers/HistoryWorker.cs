@@ -382,34 +382,16 @@ namespace ArchiveService.Workers
 
                     if (today != processPGDate) //Don't do it again.
                     {
-                        var allTasks = new List<Task>();
+                        
                         while (GetUTC8Time() >= startTime && GetUTC8Time() <= endTime)
                         {
                             var sw = Stopwatch.StartNew();
                             var data = queryTableBLL.GetPGData(limit).ToList();
-                            foreach (var item in data)
-                            {
-                                if (item.DoDelete)
-                                {
-                                    allTasks.Add(Task.Run(() => insertTable14BLL.ArchivePG14(item, delete)));
-                                    if (allTasks.Count >= taskCount)
-                                    {
-                                        Task.WhenAll(allTasks).Wait();
-                                        allTasks.Clear();
-                                    }
-                                }
-                                else
-                                {
-                                    processPGDate = today;
-                                    break;
-                                }
-                            }
 
-                            if (allTasks.Count > 0)
-                            {
-                                Task.WhenAll(allTasks).Wait();
-                                allTasks.Clear();
-                            }
+                            Parallel.ForEach(data, item =>
+                            { 
+                               insertTable14BLL.ArchivePG14(item, delete);
+                            });
 
                             logger.LogInformation($"{GetCurrentMethod()} {sw.Elapsed:c}");
                             if (data.Count < limit)
